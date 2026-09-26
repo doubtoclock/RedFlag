@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { ArrowLeft, ArrowRight, Heart, Send, Copy, RefreshCw, Upload } from "lucide-react";
+import { ArrowLeft, ArrowRight, AtSign, Camera, Check, Copy, Heart, Link as LinkIcon, MessageCircle, RefreshCw, Share2, Users, X } from "lucide-react";
 import { useEffect, useState } from "react";
 
 interface QuizResultsProps {
@@ -17,40 +17,41 @@ const MESSAGES = {
   "SINGLE": {
     "HIGH": { expertTitle: "FLAG EXPERT", result: "Wow… you're actually TOO good at this. How are you still single? 😭💚", share: "\"Send this to your crush. Maybe today is finally your day 👀\"" },
     "GOOD": { expertTitle: "GREEN FLAG", result: "Okayyy, you know your red flags… now you just need someone to test them on. 👀", share: "\"Share this with your friends and let them explain why you're still single 😂\"" },
-    "AVERAGE": { expertTitle: "MIXED SIGNALS", result: "You can identify red flags… sometimes. Your love life might need a few updates. 💀", share: "\"Send this to your single friends. Someone needs to learn 😂\"" },
+    "AVERAGE": { expertTitle: "RED FLAG ENERGY", result: "You can identify red flags… but you probably date them anyway. 💀🚩", share: "\"Send this to your single friends. Someone needs to learn 😂\"" },
     "LOW": { expertTitle: "RED FLAG ALERT", result: "No wonder you're still single. You'd probably call a red flag ‘interesting personality.’ 🚩😭", share: "\"Share this with your friends. Maybe they can save your dating life 😂\"" }
   },
   "TALKING": {
     "HIGH": { expertTitle: "FLAG EXPERT", result: "You’re not just talking… you actually know what you're doing. 👀💚", share: "\"Send this to the person you're talking to. Let’s see if they agree 👀\"" },
     "GOOD": { expertTitle: "GREEN FLAG", result: "The talking stage is looking promising… just don't ignore the red flags now. 😭", share: "\"Share this with them and see what they score 👀\"" },
-    "AVERAGE": { expertTitle: "MIXED SIGNALS", result: "You two are talking… but apparently your red-flag detection isn't. 💀🚩", share: "\"Send this to the person you're talking to. Time for a reality check 😂\"" },
+    "AVERAGE": { expertTitle: "RED FLAG ENERGY", result: "You two are talking… but your red flag is definitely showing. 💀🚩", share: "\"Send this to the person you're talking to. Time for a reality check 😂\"" },
     "LOW": { expertTitle: "RED FLAG ALERT", result: "Bro… you're one ‘it's just their personality’ away from disaster. 🚩💀", share: "\"Send this to your talking stage before it's too late 😭\"" }
   },
   "DATING": {
     "HIGH": { expertTitle: "FLAG EXPERT", result: "Okay, you're actually relationship material. Your date picked well. 💚👀", share: "\"Send this to your partner. They deserve to know they picked a Green Flag 💚\"" },
     "GOOD": { expertTitle: "GREEN FLAG", result: "Not bad… your relationship has more Green Flags than questionable decisions. 😂💚", share: "\"Share this with your date and see if they get the same score 👀\"" },
-    "AVERAGE": { expertTitle: "MIXED SIGNALS", result: "You're doing okay… but your dating decisions are keeping us slightly concerned. 😭🚩", share: "\"Send this to your date. Let them judge your score 😂\"" },
+    "AVERAGE": { expertTitle: "RED FLAG ENERGY", result: "You're doing okay… but your red flags are starting to show. 😭🚩", share: "\"Send this to your date. Let them judge your score 😂\"" },
     "LOW": { expertTitle: "RED FLAG ALERT", result: "We need to talk about your dating choices… because the red flags are basically waving at you. 🚩💀", share: "\"Send this to your date. Let's see if they still want to go on another one 😂\"" }
   },
   "IN A RELATIONSHIP": {
     "HIGH": { expertTitle: "FLAG EXPERT", result: "Your partner is seriously lucky. You’re basically a walking Green Flag. 💚🏆", share: "\"Send this to your partner so they know how lucky they are 👀❤️\"" },
     "GOOD": { expertTitle: "GREEN FLAG", result: "Okay, we approve. Your partner made a pretty good choice. 💚😂", share: "\"Share this with your partner. They need some appreciation today ❤️\"" },
-    "AVERAGE": { expertTitle: "MIXED SIGNALS", result: "You're a Green Flag… with a few terms and conditions. 😭💚🚩", share: "\"Send this to your partner and let them decide if they agree 😂\"" },
+    "AVERAGE": { expertTitle: "RED FLAG ENERGY", result: "You're a Red Flag… with a few good intentions. 😭🚩", share: "\"Send this to your partner and let them decide if they agree 😂\"" },
     "LOW": { expertTitle: "RED FLAG ALERT", result: "Your partner deserves a medal for surviving your red flags. 💀🚩", share: "\"Share this with your partner. They deserve to know what they're dealing with 😭\"" }
   },
   "IT'S COMPLICATED": {
     "HIGH": { expertTitle: "FLAG EXPERT", result: "It's complicated… but at least YOU aren't the complicated one. 💚😭", share: "\"Send this to the person who makes your relationship complicated 👀\"" },
     "GOOD": { expertTitle: "GREEN FLAG", result: "Your relationship status is complicated, but your Green Flag detection isn't. Respect. 💚", share: "\"Share this with them and maybe finally figure out what's going on 😂\"" },
-    "AVERAGE": { expertTitle: "MIXED SIGNALS", result: "Yeah… ‘It's complicated’ suddenly makes a lot more sense. 💀🚩", share: "\"Send this to the person you're ‘complicated’ with 😂\"" },
+    "AVERAGE": { expertTitle: "RED FLAG ENERGY", result: "Yeah… your red flags explain why it's complicated. 💀🚩", share: "\"Send this to the person you're ‘complicated’ with 😂\"" },
     "LOW": { expertTitle: "RED FLAG ALERT", result: "It's complicated because apparently neither of you knows what a red flag looks like. 🚩💀", share: "\"Share this with them. Maybe this game can fix what your communication couldn't 😭\"" }
   }
 };
 
 export function QuizResults({ results, onRetake }: QuizResultsProps) {
   const [relStatus, setRelStatus] = useState<RelationshipStatus>("SINGLE");
-  const [copied, setCopied] = useState(false);
   const [displayScore, setDisplayScore] = useState(0);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareFeedback, setShareFeedback] = useState("");
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -63,9 +64,9 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
 
   const score = results.filter((r) => r.flag === r.correctFlag).length;
   const totalCount = results.length;
-  
+
   const percentage = totalCount > 0 ? Math.round((score / totalCount) * 100) : 0;
-  
+
   useEffect(() => {
     let start = 0;
     const end = percentage;
@@ -83,28 +84,28 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
     }, 16);
     return () => clearInterval(timer);
   }, [percentage]);
-  
+
   let scoreTier: ScoreTier = "AVERAGE";
-  if (percentage === 100) scoreTier = "HIGH";
-  else if (percentage >= 75) scoreTier = "GOOD";
+  if (percentage >= 90) scoreTier = "HIGH";
+  else if (percentage >= 70) scoreTier = "GOOD";
   else if (percentage >= 40) scoreTier = "AVERAGE";
   else scoreTier = "LOW";
 
-  const isRedFlag = scoreTier === "LOW";
+  const isRedFlag = percentage < 70;
   const messageData = MESSAGES[relStatus][scoreTier];
 
   // Dynamic personality title based on score
   let personalityTitle = "FLAG EXPERT";
-  if (percentage >= 85) personalityTitle = "FLAG EXPERT";
-  else if (percentage >= 65) personalityTitle = "PRETTY AWARE";
-  else if (percentage >= 40) personalityTitle = "IT'S COMPLICATED";
+  if (percentage >= 90) personalityTitle = "FLAG EXPERT";
+  else if (percentage >= 70) personalityTitle = "PRETTY AWARE";
+  else if (percentage >= 40) personalityTitle = "RED FLAG ENERGY";
   else personalityTitle = "WE NEED TO TALK";
 
   // Parse message into main title (Juana) and subtitle (Sans)
-  let rawMsg = messageData.result;
+  const rawMsg = messageData.result;
   let mainPart = rawMsg;
   let subPart = "";
-  
+
   if (rawMsg.includes(". ")) {
     const parts = rawMsg.split(". ");
     subPart = parts.pop() || "";
@@ -129,7 +130,7 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
     titleColor: isRedFlag ? "text-red-200" : "text-[#c2f2b3]",
     bgImage: "/result-bg.png",
     flagImage: isRedFlag ? "/red-flag.png" : "/green-flag.png",
-    title: isRedFlag ? "RED FLAG" : "GREEN FLAG",
+    title: isRedFlag ? "YOU'RE A RED FLAG" : "YOU'RE A GREEN FLAG",
     pillText: `YOU'RE ${relStatus}`,
     expertTitle: personalityTitle,
     resultMessage: messageData.result,
@@ -143,13 +144,86 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
     orbitBorder: isRedFlag ? "border-red-400" : "border-green-400",
   };
 
+  const configuredShareUrl = process.env.NEXT_PUBLIC_SHARE_URL?.replace(/\/+$/, "");
+  const getShareUrl = () => configuredShareUrl ? `${configuredShareUrl}/test` : undefined;
+  const getShareText = () => {
+    const shareUrl = getShareUrl();
+    return shareUrl
+      ? `I got ${percentage}% on the Red Flag test. Can you beat my score?\n\nTake the test: ${shareUrl}`
+      : `I got ${percentage}% on the Red Flag test. Can you beat my score?`;
+  };
+  const supportsNativeShare = typeof navigator !== "undefined" && "share" in navigator;
+
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
+      const textArea = document.createElement("textarea");
+      textArea.value = text;
+      textArea.style.position = "fixed";
+      textArea.style.opacity = "0";
+      document.body.appendChild(textArea);
+      textArea.select();
+      const copiedText = document.execCommand("copy");
+      textArea.remove();
+      return copiedText;
+    }
+  };
+
+  const handleCopyLink = async () => {
+    const shareUrl = getShareUrl();
+    if (!shareUrl) {
+      setShareFeedback("A public share URL has not been configured yet.");
+      return;
+    }
+
+    const didCopy = await copyToClipboard(shareUrl);
+    setShareFeedback(didCopy ? "Link copied!" : "Couldn't copy the link. Please try again.");
+  };
+
+  const handleInstagramShare = () => {
+    setShareFeedback("Opening Instagram…");
+    void copyToClipboard(getShareText()).then((didCopy) => {
+      setShareFeedback(didCopy ? "Share text copied — paste it into Instagram." : "Instagram is open — share your result there.");
+    });
+  };
+
+  const handleNativeShare = async () => {
+    const shareUrl = getShareUrl();
+    const shareOptions = {
+      title: "My Red Flag result",
+      text: `I got ${percentage}% on the Red Flag test. Can you beat my score?`,
+      ...(shareUrl ? { url: shareUrl } : {}),
+    };
+
+    try {
+      const { Capacitor } = await import("@capacitor/core");
+
+      if (Capacitor.isNativePlatform()) {
+        const { Share } = await import("@capacitor/share");
+        await Share.share({ ...shareOptions, dialogTitle: "Share your Red Flag result" });
+        return;
+      }
+
+      if (supportsNativeShare) {
+        await navigator.share(shareOptions);
+      } else {
+        await handleCopyLink();
+      }
+    } catch {
+      // Dismissing a share sheet is expected; give the user a useful fallback for real failures.
+      setShareFeedback("Couldn't open sharing options. The link is ready to copy instead.");
+    }
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       transition={{ duration: 1 }}
-      className="fixed inset-0 z-50 pointer-events-none bg-black"
+      className="fixed inset-0 z-50 overflow-hidden pointer-events-none bg-black"
     >
       {/* Background Image */}
       <div className="absolute inset-0 z-0 w-screen h-[100dvh]">
@@ -164,10 +238,10 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
       </div>
 
       {/* Main Content Container */}
-      <div className="absolute inset-0 m-auto flex flex-col w-full max-w-[430px] h-[100dvh] bg-transparent overflow-y-auto overflow-x-hidden font-sans pointer-events-auto pb-6">
-        
+      <div className="absolute inset-0 m-auto flex h-[100dvh] w-full max-w-[430px] flex-col overflow-x-hidden overflow-y-auto overscroll-contain bg-transparent pb-[calc(2rem+env(safe-area-inset-bottom))] font-sans pointer-events-auto">
+
         {/* Top Header */}
-        <div className="relative z-20 w-full flex items-start justify-between p-6 pt-10 flex-shrink-0">
+        <div className="relative z-20 flex w-full flex-shrink-0 items-start justify-between px-5 pb-5 pt-[max(2.5rem,env(safe-area-inset-top))]">
           <div className="flex flex-col gap-6">
             <button onClick={onRetake} className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white/10 transition-colors backdrop-blur-sm -ml-1">
               <ArrowLeft className="w-5 h-5" strokeWidth={1} />
@@ -180,154 +254,177 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
               <div className="w-6 h-[1px] bg-white/40" />
             </div>
           </div>
-          
+
           <div className="text-right flex flex-col items-end">
-            <p className="text-[7px] tracking-[0.25em] uppercase text-white/80 mb-2 font-medium text-right leading-[1.6]">BETTER<br/>PEOPLE<br/>BRIGHTER<br/>DAYS</p>
+            <p className="text-[7px] tracking-[0.25em] uppercase text-white/80 mb-2 font-medium text-right leading-[1.6]">BETTER<br />PEOPLE<br />BRIGHTER<br />DAYS</p>
             <div className="w-6 h-[1px] bg-white/40" />
           </div>
         </div>
 
         {/* Center Content */}
-        <div className="relative z-20 flex-1 flex flex-col items-center justify-start w-full px-5 -mt-20 sm:-mt-24">
-          
+        <div className="relative z-20 flex w-full flex-col items-center px-5 pt-2">
+
           {/* Result Title */}
           <div className="text-center flex flex-col items-center z-10">
-            <p className="text-[10px] font-medium tracking-[0.3em] uppercase text-white mb-0">
+            <p className="mb-2 text-[10px] font-medium tracking-[0.3em] uppercase text-white">
               YOUR RESULT
             </p>
-            
+
             {/* Percentage & Flag text */}
-            <div className="flex flex-col items-center justify-center relative">
-              <div className="flex items-end mt-1">
-                <h1 
-                  className="font-juana text-[120px] leading-[0.8] tracking-tighter" 
-                  style={{ 
-                    background: theme.gradient, 
-                    WebkitBackgroundClip: 'text', 
-                    color: 'transparent' 
+            <div className="relative flex flex-col items-center justify-center pt-2">
+              <div className="flex items-end">
+                <h1
+                  className="font-juana text-[96px] leading-none tracking-tighter sm:text-[120px]"
+                  style={{
+                    background: theme.gradient,
+                    WebkitBackgroundClip: 'text',
+                    color: 'transparent'
                   }}
                 >
                   {displayScore}
                 </h1>
-                <span className="text-[40px] font-juana mb-2" 
-                      style={{ 
-                        background: theme.gradient, 
-                        WebkitBackgroundClip: 'text', 
-                        color: 'transparent' 
-                      }}>%</span>
+                <span className="mb-3 font-juana text-[34px] sm:text-[40px]"
+                  style={{
+                    background: theme.gradient,
+                    WebkitBackgroundClip: 'text',
+                    color: 'transparent'
+                  }}>%</span>
               </div>
-              <motion.h2 
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7, duration: 0.5 }}
-                  className={`font-juana text-[42px] leading-[0.9] tracking-wider uppercase drop-shadow-lg`}
-                  style={{ 
-                    background: theme.gradient, 
-                    WebkitBackgroundClip: 'text', 
-                    color: 'transparent' 
-                  }}>
+              <motion.h2
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.7, duration: 0.5 }}
+                className="mt-2 max-w-full font-juana text-[28px] leading-[1.1] tracking-wide uppercase drop-shadow-lg text-center sm:text-[42px]"
+                style={{
+                  background: theme.gradient,
+                  WebkitBackgroundClip: 'text',
+                  color: 'transparent'
+                }}>
                 {theme.title}
               </motion.h2>
             </div>
           </div>
 
           {/* 3D Flag Image with orbit */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.7, duration: 0.8 }}
-            className="relative w-full max-w-[280px] h-[170px] flex items-center justify-center z-0 mb-6"
+            className="relative z-0 mb-6 mt-2 flex h-[190px] w-full max-w-[280px] items-center justify-center"
           >
             {/* Orbit rings */}
             <div className={`absolute w-[100%] h-[100%] rounded-[100%] border-[0.5px] ${theme.orbitBorder} rotate-[-12deg] scale-y-[0.35] ${theme.orbitGlow}`}></div>
             <div className={`absolute w-[100%] h-[100%] rounded-[100%] border-[0.5px] border-white/20 rotate-[-12deg] scale-y-[0.35]`}></div>
-            
-            <div className="relative w-[240px] h-[240px] z-10 -mt-8 -ml-4 pointer-events-none">
-              <Image 
-                src={theme.flagImage} 
-                alt={theme.title} 
-                fill 
+
+            <div className="relative z-10 h-[220px] w-[220px] pointer-events-none sm:h-[240px] sm:w-[240px]">
+              <Image
+                src={theme.flagImage}
+                alt={theme.title}
+                fill
                 className={`object-contain ${isRedFlag ? 'drop-shadow-[0_0_30px_rgba(239,68,68,0.4)]' : 'drop-shadow-[0_0_30px_rgba(34,197,94,0.4)]'}`}
               />
             </div>
           </motion.div>
 
           {/* Glass Card */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 1.0, duration: 0.6 }}
-            className={`w-full rounded-[32px] border ${theme.cardBorder} bg-[#0a0a0a]/60 backdrop-blur-xl px-6 py-8 flex flex-col items-center relative overflow-hidden ${theme.cardGlow} z-20 -mt-10 mb-2`}
+            className={`relative z-20 mb-2 flex w-full flex-col items-center overflow-hidden rounded-[28px] border ${theme.cardBorder} bg-[#0a0a0a]/60 px-5 py-7 backdrop-blur-xl sm:rounded-[32px] sm:px-6 sm:py-8 ${theme.cardGlow}`}
             style={{ boxShadow: `0 0 40px rgba(0,0,0,0.8), inset 0 0 20px rgba(255,255,255,0.03)` }}
           >
-            
+
             {/* Top gradient glow inside card (subtle white) */}
             <div className={`absolute top-0 left-0 w-full h-32 bg-gradient-to-b from-white/[0.03] to-transparent opacity-100 pointer-events-none`} />
-            
+
             <div className="relative z-10 flex flex-col items-center w-full">
               {/* Pill badge */}
               <div className={`rounded-full border border-white/20 px-4 py-1.5 flex items-center gap-2 mb-5 bg-transparent`}>
                 <Heart className={`w-3.5 h-3.5 ${isRedFlag ? 'text-red-400' : 'text-green-400'}`} strokeWidth={1.5} />
                 <span className="text-[9px] tracking-[0.2em] font-medium text-white/80 uppercase">{theme.pillText}</span>
               </div>
-              
+
               <p className="text-[10px] tracking-[0.3em] font-light text-white/60 uppercase mb-4 text-center">
                 {theme.expertTitle}
               </p>
-              
-              <h3 className="font-juana text-[26px] sm:text-[30px] leading-[1.2] text-center text-white mb-2 font-medium px-2">
-                {firstWords} <br/>
+
+              <h3 className="mb-2 px-1 text-center font-juana text-[24px] font-medium leading-[1.2] text-white sm:px-2 sm:text-[30px]">
+                {firstWords} <br />
                 <span className={theme.titleColor}>{lastTwoWords}</span>
               </h3>
-              
+
               {subPart && (
                 <p className="font-sans text-[15px] sm:text-[16px] text-white/90 text-center mb-8 font-light">
                   {subPart}
                 </p>
               )}
-              
+
               <div className="w-12 h-[1px] bg-white/20 mb-8" />
-              
+
               {/* Inner Share Card */}
               <div className="w-full flex flex-col gap-3">
-                 <div className="flex items-center gap-3">
-                    <span className="text-[10px] tracking-[0.15em] font-medium text-white/90 uppercase">SHARE THIS WITH THEM</span>
-                 </div>
-                 
-                 <div className={`w-full rounded-[20px] border border-white/20 bg-white/5 p-5 relative overflow-hidden backdrop-blur-md flex items-center justify-center`}>
-                   <p className="text-[13px] text-white/80 leading-[1.6] whitespace-pre-line font-medium font-sans text-center">
-                     {theme.quote}
-                   </p>
-                 </div>
+                <div className="flex items-center gap-3">
+                  <span className="text-[10px] tracking-[0.15em] font-medium text-white/90 uppercase">SHARE THIS WITH THEM</span>
+                </div>
+
+                <div className="relative flex w-full items-center justify-center overflow-hidden rounded-[20px] border border-white/20 bg-white/5 p-4 backdrop-blur-md sm:p-5">
+                  <p className="text-[13px] text-white/80 leading-[1.6] whitespace-pre-line font-medium font-sans text-center">
+                    {theme.quote}
+                  </p>
+                </div>
               </div>
             </div>
           </motion.div>
         </div>
 
         {/* Bottom Actions Container */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 1.3, duration: 0.5 }}
-          className="relative z-20 w-full px-5 pb-8 flex flex-col items-center gap-3 flex-shrink-0 mt-8"
+          className="relative z-20 mt-6 flex w-full flex-shrink-0 flex-col items-center gap-3 px-5 pb-2"
         >
-          <button className={`w-full py-4 rounded-[100px] flex items-center justify-center ${theme.primaryBtnBg} hover:opacity-90 transition-opacity font-medium text-[15px]`}>
-            <span>Share Result</span> 
+          <button
+            onClick={() => {
+              setShareFeedback("");
+              setShowShareModal(true);
+            }}
+            className={`w-full py-4 rounded-[100px] flex items-center justify-center ${theme.primaryBtnBg} hover:opacity-90 transition-opacity font-medium text-[15px]`}
+          >
+            <span>Share Result</span>
             <ArrowRight className="w-5 h-5 ml-2" strokeWidth={2} />
           </button>
-          
-          <button 
+
+          <button
             onClick={() => {
-              const challengeText = `I just got ${percentage}% Green Flag. Think you can beat me?\n\nTake the test: https://redflag.test`;
-              navigator.clipboard.writeText(challengeText);
-              setShowChallengeModal(true);
+              const shareUrl = getShareUrl();
+              if (!shareUrl) {
+                setShareFeedback("A public share URL has not been configured yet.");
+                setShowShareModal(true);
+                return;
+              }
+
+              const challengeText = `I just got ${percentage}% Green Flag. Think you can beat me?\n\nTake the test: ${shareUrl}`;
+              void copyToClipboard(challengeText).then((didCopy) => {
+                if (didCopy) {
+                  setShowChallengeModal(true);
+                } else {
+                  setShareFeedback("Couldn't copy the challenge. Please try again.");
+                  setShowShareModal(true);
+                }
+              });
             }}
             className="w-full py-4 rounded-[100px] border border-white/20 flex items-center justify-center gap-3 text-white bg-[#1a1a1a]/40 backdrop-blur-md hover:bg-white/10 transition-colors font-medium text-[15px]"
           >
             Think they can beat you? <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
           </button>
 
-          <button onClick={onRetake} className="mt-4 text-[11px] uppercase tracking-[0.2em] font-medium text-white/50 hover:text-white/80 transition-colors">
+          <button
+            onClick={onRetake}
+            className="mt-6 flex items-center justify-center gap-2 px-6 py-2.5 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/40 text-[11px] uppercase tracking-[0.2em] font-medium text-white/80 hover:text-white hover:scale-105 transition-all shadow-[0_0_15px_rgba(255,255,255,0.05)] active:scale-95"
+          >
+            <RefreshCw className="w-3.5 h-3.5" />
             Try Again
           </button>
         </motion.div>
@@ -335,7 +432,7 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
         {/* Footer Signature */}
         <div className="relative z-20 w-full px-6 pb-2 flex items-end justify-between flex-shrink-0">
           <div></div>
-          
+
           <div className="text-right flex flex-col items-end">
             <p className="text-[7px] tracking-[0.25em] uppercase text-white/60 mb-0.5 font-medium">KINDER</p>
             <p className="text-[7px] tracking-[0.25em] uppercase text-white/60 mb-0.5 font-medium">RELATIONSHIPS</p>
@@ -374,6 +471,111 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
               >
                 Got it
               </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {showShareModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowShareModal(false)}
+            className="fixed inset-0 z-[100] flex items-end justify-center bg-black/70 backdrop-blur-sm px-4 pb-4 pointer-events-auto sm:items-center sm:pb-0"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 28, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 28, scale: 0.98 }}
+              transition={{ type: "spring", damping: 24, stiffness: 300 }}
+              onClick={(event) => event.stopPropagation()}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="share-result-title"
+              className="w-full max-w-[390px] rounded-[28px] border border-white/10 bg-[#121212] p-5 shadow-2xl"
+            >
+              <div className="mb-5 flex items-center justify-between">
+                <div>
+                  <p id="share-result-title" className="text-[18px] font-medium text-white">Share your result</p>
+                  <p className="mt-1 text-[12px] text-white/55">Challenge your friends to beat {percentage}%.</p>
+                </div>
+                <button
+                  onClick={() => setShowShareModal(false)}
+                  aria-label="Close share options"
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-white/10 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-4 gap-3">
+                <a
+                  href={`https://wa.me/?text=${encodeURIComponent(getShareText())}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setShareFeedback("Opening WhatsApp…")}
+                  className="flex flex-col items-center gap-2 rounded-2xl py-2 text-[10px] text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white"><MessageCircle className="h-5 w-5" /></span>
+                  WhatsApp
+                </a>
+                <a
+                  href="https://www.instagram.com/"
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={handleInstagramShare}
+                  className="flex flex-col items-center gap-2 rounded-2xl py-2 text-[10px] text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] text-white"><Camera className="h-5 w-5" /></span>
+                  Instagram
+                </a>
+                <button
+                  onClick={() => {
+                    const shareUrl = getShareUrl();
+                    if (!shareUrl) {
+                      setShareFeedback("Facebook sharing needs a configured public share URL.");
+                      return;
+                    }
+                    setShareFeedback("Opening Facebook…");
+                    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank", "noopener,noreferrer");
+                  }}
+                  className="flex flex-col items-center gap-2 rounded-2xl py-2 text-[10px] text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1877F2] text-white"><Users className="h-5 w-5" /></span>
+                  Facebook
+                </button>
+                <a
+                  href={`https://x.com/intent/post?text=${encodeURIComponent(getShareText())}`}
+                  target="_blank"
+                  rel="noreferrer"
+                  onClick={() => setShareFeedback("Opening X…")}
+                  className="flex flex-col items-center gap-2 rounded-2xl py-2 text-[10px] text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-black"><AtSign className="h-5 w-5" /></span>
+                  X
+                </a>
+              </div>
+
+              <div className="mt-5 border-t border-white/10 pt-4">
+                <button
+                  onClick={handleCopyLink}
+                  className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/15 bg-white/5 px-4 py-3 text-[13px] font-medium text-white transition-colors hover:bg-white/10"
+                >
+                  {shareFeedback === "Link copied!" ? <Check className="h-4 w-4 text-green-400" /> : <LinkIcon className="h-4 w-4" />}
+                  {shareFeedback === "Link copied!" ? "Link copied" : "Copy link"}
+                </button>
+                <button
+                  onClick={handleNativeShare}
+                  className="mt-2 flex w-full items-center justify-center gap-2 py-2 text-[12px] text-white/55 transition-colors hover:text-white"
+                >
+                  <Share2 className="h-3.5 w-3.5" /> More sharing options
+                </button>
+                {shareFeedback && shareFeedback !== "Link copied!" && (
+                  <p className="mt-3 text-center text-[11px] text-green-300">{shareFeedback}</p>
+                )}
+              </div>
             </motion.div>
           </motion.div>
         )}

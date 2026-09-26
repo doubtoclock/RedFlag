@@ -38,15 +38,8 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: -0.02em;
 }
 
-@font-face {
-  font-family: 'JuanaPatch';
-  src: local('Times New Roman'), local('Georgia'), local('ui-serif'), local('serif');
-  /* Target the number 4 (U+0034) and various apostrophes/quotes (U+0027, U+2018, U+2019, U+201C, U+201D) */
-  unicode-range: U+0027, U+0034, U+2018, U+2019, U+201C, U+201D;
-}
-
 .font-juana {
-  font-family: 'JuanaPatch', var(--font-juana), serif;
+  font-family: var(--font-sanggar), serif;
 }
 
 a {

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Flag } from "lucide-react";
 import { SwipeCard } from "./SwipeCard";
 import { FlagReveal } from "./FlagReveal";
 import { SwipeControls } from "./SwipeControls";
@@ -30,6 +30,7 @@ export function SwipeQuiz({ questions }: SwipeQuizProps) {
   const [showResults, setShowResults] = useState(false);
   const [loadingText, setLoadingText] = useState("Checking your instincts...");
   const [totalSelected, setTotalSelected] = useState(20);
+  const [showTutorial, setShowTutorial] = useState(true);
 
   useEffect(() => {
     // Initial random selection
@@ -87,6 +88,56 @@ export function SwipeQuiz({ questions }: SwipeQuizProps) {
 
   return (
     <>
+      <AnimatePresence>
+        {showTutorial && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, filter: "blur(10px)" }}
+            transition={{ duration: 0.6, ease: "easeInOut" }}
+            className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-[#0a0a0a]/80 backdrop-blur-xl px-6 text-center"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: -20 }}
+              transition={{ delay: 0.2, duration: 0.7, ease: [0.34, 1.56, 0.64, 1] }}
+              className="flex flex-col items-center max-w-md w-full relative"
+            >
+              <div className="flex w-full items-center justify-center gap-10 sm:gap-16 mb-12">
+                <div className="flex flex-col items-center gap-4 group">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border border-red-500/30 bg-red-500/10 flex items-center justify-center animate-[pulse_3s_ease-in-out_infinite]">
+                    <Flag className="w-6 h-6 sm:w-8 sm:h-8 text-red-500/90 fill-current ml-0.5" />
+                  </div>
+                  <span className="text-white/60 text-[10px] sm:text-xs tracking-[0.2em] font-medium uppercase">Swipe Left</span>
+                </div>
+                
+                <div className="flex flex-col items-center gap-4 group">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border border-green-500/30 bg-green-500/10 flex items-center justify-center animate-[pulse_3s_ease-in-out_infinite]" style={{ animationDelay: '1.5s' }}>
+                    <Flag className="w-6 h-6 sm:w-8 sm:h-8 text-green-500/90 fill-current ml-0.5" />
+                  </div>
+                  <span className="text-white/60 text-[10px] sm:text-xs tracking-[0.2em] font-medium uppercase">Swipe Right</span>
+                </div>
+              </div>
+
+              <h2 className="font-juana text-[40px] sm:text-5xl text-white mb-6 leading-[1.1] tracking-tight drop-shadow-xl">
+                Trust your <span className="text-[#eedbc2] italic">instincts</span>
+              </h2>
+              <p className="text-white/70 text-base sm:text-lg mb-12 font-light tracking-wide leading-relaxed">
+                Swipe <span className="text-red-400 font-semibold drop-shadow-[0_0_8px_rgba(248,113,113,0.5)]">left</span> for a red flag,<br/>and <span className="text-green-400 font-semibold drop-shadow-[0_0_8px_rgba(74,222,128,0.5)]">right</span> for a green flag.
+              </p>
+
+              <button 
+                onClick={() => setShowTutorial(false)}
+                className="group relative px-12 py-4 bg-gradient-to-r from-[#eedbc2] to-[#e4cbad] hover:brightness-105 text-black rounded-full font-semibold text-lg transition-all duration-300 hover:scale-[1.08] hover:shadow-[0_10px_40px_rgba(238,219,194,0.4)] active:scale-95"
+              >
+                I'm Ready
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Dynamic Blurred Background */}
       <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <AnimatePresence>

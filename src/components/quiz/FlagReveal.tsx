@@ -13,7 +13,6 @@ export function FlagReveal({ revealType }: FlagRevealProps) {
   const isRed = revealType === "red";
   
   const iconColor = isRed ? "text-red-500" : "text-green-500";
-  const glowColor = isRed ? "bg-red-500/20" : "bg-green-500/20";
   const title = isRed ? "RED FLAG" : "GREEN FLAG";
   const subtitle = isRed ? "Not for everyone." : "That's a good sign.";
   
@@ -27,7 +26,6 @@ export function FlagReveal({ revealType }: FlagRevealProps) {
       scale: 1,
       transition: {
         duration: 0.2,
-        ease: "easeOut",
       },
     },
     exit: {

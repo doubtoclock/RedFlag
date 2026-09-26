@@ -29,34 +29,38 @@ export function SwipeControls({ isVisible, isTransitioning, showInstructions = t
 
   return (
     <div className={`relative z-20 flex flex-col items-center transition-opacity duration-500 mt-2 ${!isVisible ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}>
-      <div className="flex items-center gap-16 mb-2">
-        <LiquidButton 
-          disabled={isTransitioning}
-          onClick={() => {
-            if (!isTransitioning) {
-              window.dispatchEvent(new CustomEvent("triggerSwipe", { detail: "left" }));
-            }
-          }}
-          className="w-12 h-12 rounded-full border border-red-500/30 bg-red-500/5 !p-0 flex items-center justify-center hover:bg-red-500/10 hover:border-red-500/50 hover:scale-[1.08] transition-all shadow-none disabled:opacity-50"
-        >
-          <Flag className="w-5 h-5 text-red-500/70 fill-current ml-0.5" strokeWidth={1.5} />
-        </LiquidButton>
+      
 
-        <LiquidButton 
-          disabled={isTransitioning}
-          onClick={() => {
-            if (!isTransitioning) {
-              window.dispatchEvent(new CustomEvent("triggerSwipe", { detail: "right" }));
-            }
-          }}
-          className="w-12 h-12 rounded-full border border-green-500/30 bg-green-500/5 !p-0 flex items-center justify-center hover:bg-green-500/10 hover:border-green-500/50 hover:scale-[1.08] transition-all shadow-none disabled:opacity-50"
-        >
-          <Flag className="w-5 h-5 text-green-500/70 fill-current ml-0.5" strokeWidth={1.5} />
-        </LiquidButton>
-      </div>
+      <div className="flex items-center gap-12 sm:gap-20 mb-2 mt-4">
+        <div className="flex flex-col items-center gap-4">
+          <LiquidButton 
+            disabled={isTransitioning}
+            onClick={() => {
+              if (!isTransitioning) {
+                window.dispatchEvent(new CustomEvent("triggerSwipe", { detail: "left" }));
+              }
+            }}
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border border-red-500/30 bg-red-500/5 !p-0 flex items-center justify-center hover:bg-red-500/10 hover:border-red-500/50 hover:scale-[1.08] transition-all shadow-none disabled:opacity-50"
+          >
+            <Flag className="w-5 h-5 sm:w-6 sm:h-6 text-red-500/70 fill-current ml-0.5" strokeWidth={1.5} />
+          </LiquidButton>
+          <span className="text-[10px] uppercase tracking-[0.25em] text-white/50 font-medium whitespace-nowrap">← RED FLAG</span>
+        </div>
 
-      <div className={`text-center text-[10px] uppercase tracking-[0.25em] text-white/40 font-medium transition-opacity duration-500 ${showInstructions ? 'opacity-100' : 'opacity-0'}`}>
-        <p>← RED FLAG &nbsp;&nbsp;&nbsp; GREEN FLAG →</p>
+        <div className="flex flex-col items-center gap-4">
+          <LiquidButton 
+            disabled={isTransitioning}
+            onClick={() => {
+              if (!isTransitioning) {
+                window.dispatchEvent(new CustomEvent("triggerSwipe", { detail: "right" }));
+              }
+            }}
+            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full border border-green-500/30 bg-green-500/5 !p-0 flex items-center justify-center hover:bg-green-500/10 hover:border-green-500/50 hover:scale-[1.08] transition-all shadow-none disabled:opacity-50"
+          >
+            <Flag className="w-5 h-5 sm:w-6 sm:h-6 text-green-500/70 fill-current ml-0.5" strokeWidth={1.5} />
+          </LiquidButton>
+          <span className="text-[10px] uppercase tracking-[0.25em] text-white/50 font-medium whitespace-nowrap">GREEN FLAG →</span>
+        </div>
       </div>
     </div>
   );

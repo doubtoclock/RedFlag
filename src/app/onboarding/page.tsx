@@ -41,9 +41,20 @@ export default function Onboarding() {
     }
   };
 
+  const canContinue =
+    step === 1
+      ? name.trim().length > 0
+      : step === 2
+        ? true
+        : step === 3
+          ? Boolean(taker)
+          : step === 4
+            ? Boolean(relationshipStatus)
+            : true;
+
   return (
     <div className="bg-[#0a0a0a] min-h-[100dvh] w-full flex justify-center">
-      <div className="relative min-h-[100dvh] w-full max-w-[430px] overflow-hidden flex flex-col py-12 px-6 shadow-2xl shadow-black/50 border-x border-white/5 bg-black">
+      <div className="relative h-[100dvh] w-full max-w-[430px] overflow-hidden flex flex-col py-12 px-6 shadow-2xl shadow-black/50 border-x border-white/5 bg-black">
         
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
@@ -100,7 +111,7 @@ export default function Onboarding() {
         )}
 
         {/* Content Area */}
-        <div className={`relative z-10 flex-1 min-h-0 flex flex-col transition-all duration-400 ease-in-out overflow-y-auto pb-[120px] ${isExiting ? (direction === 'forward' ? '-translate-x-8 opacity-0' : 'translate-x-8 opacity-0') : 'translate-x-0 opacity-100'}`}>
+        <div className={`relative z-10 flex-1 min-h-0 flex flex-col transition-all duration-400 ease-in-out overflow-y-auto pb-[100px] ${isExiting ? (direction === 'forward' ? '-translate-x-8 opacity-0' : 'translate-x-8 opacity-0') : 'translate-x-0 opacity-100'}`}>
           {step === 1 && (
             <div className="animate-in fade-in slide-in-from-right-8 duration-500 flex flex-col flex-1 px-2">
               <div className="mb-8 mt-0">
@@ -151,14 +162,14 @@ export default function Onboarding() {
                 Just so we can keep<br/>the questions relevant.
               </p>
               
-              <div className="mt-4 mb-24 flex flex-col items-center w-full">
+              <div className="mt-2 mb-8 flex flex-col items-center w-full">
                 <div 
-                  className="font-juana text-[110px] leading-none text-white drop-shadow-lg font-normal tracking-tighter animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both"
+                  className="font-juana text-[88px] sm:text-[110px] leading-none text-white drop-shadow-lg font-normal tracking-tighter animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both"
                   style={{ animationDelay: '100ms' }}
                 >
                   {age}
                 </div>
-                <div className="text-[10px] tracking-[0.2em] uppercase text-white/70 mb-10 font-medium animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '150ms' }}>
+                <div className="text-[10px] tracking-[0.2em] uppercase text-white/70 mb-6 font-medium animate-in fade-in slide-in-from-bottom-4 duration-500 fill-mode-both" style={{ animationDelay: '150ms' }}>
                   years old
                 </div>
                 
@@ -220,13 +231,13 @@ export default function Onboarding() {
                     key={option.id}
                     onClick={() => setTaker(option.id as "myself" | "partner" | "curious")}
                     className={`animate-in fade-in slide-in-from-bottom-6 fill-mode-both w-full flex items-center py-5 border-b border-white/10 transition-all duration-300 text-left group
-                      ${taker === option.id ? 'opacity-100 translate-x-2' : 'opacity-75 hover:opacity-100'}`}
+                      ${taker === option.id ? 'opacity-100 translate-x-2' : 'opacity-75 hover:opacity-100 hover:translate-x-2 hover:border-white/30'}`}
                     style={{ animationDelay: `${index * 100 + 200}ms`, animationDuration: '500ms' }}
                   >
-                    <span className={`text-[10px] tracking-[0.2em] font-medium mr-6 transition-colors ${taker === option.id ? 'text-[#eedbc2] opacity-100' : 'opacity-60'}`}>0{index + 1}</span>
-                    <div className="flex flex-col flex-1">
-                      <span className={`font-medium text-[15px] sm:text-base mb-1 tracking-[0.1em] transition-colors ${taker === option.id ? 'text-[#eedbc2]' : 'text-white'}`}>{option.label}</span>
-                      <span className={`text-[13px] font-light transition-colors ${taker === option.id ? 'text-[#eedbc2]/80' : 'text-white/60'}`}>{option.sub}</span>
+                    <span className={`text-[10px] tracking-[0.2em] font-medium mr-6 transition-colors duration-300 ${taker === option.id ? 'text-[#eedbc2] opacity-100' : 'opacity-60 group-hover:text-[#eedbc2] group-hover:opacity-100'}`}>0{index + 1}</span>
+                    <div className="flex flex-col flex-1 transition-all duration-300">
+                      <span className={`text-[15px] sm:text-base mb-1 tracking-[0.1em] transition-all duration-300 ${taker === option.id ? 'text-[#eedbc2] font-bold drop-shadow-[0_0_8px_rgba(238,219,194,0.5)]' : 'text-white font-medium group-hover:font-bold group-hover:text-[#eedbc2] group-hover:drop-shadow-[0_0_8px_rgba(238,219,194,0.5)]'}`}>{option.label}</span>
+                      <span className={`text-[13px] font-light transition-colors duration-300 ${taker === option.id ? 'text-[#eedbc2]/80' : 'text-white/60 group-hover:text-[#eedbc2]/90'}`}>{option.sub}</span>
                     </div>
                   </button>
                 ))}
@@ -266,13 +277,13 @@ export default function Onboarding() {
                       }
                     }}
                     className={`animate-in fade-in slide-in-from-bottom-6 fill-mode-both w-full flex items-center py-5 border-b border-white/10 transition-all duration-300 text-left group
-                      ${relationshipStatus === option.label ? 'opacity-100 translate-x-2' : 'opacity-75 hover:opacity-100'}`}
+                      ${relationshipStatus === option.label ? 'opacity-100 translate-x-2' : 'opacity-75 hover:opacity-100 hover:translate-x-2 hover:border-white/30'}`}
                     style={{ animationDelay: `${index * 80 + 200}ms`, animationDuration: '500ms' }}
                   >
-                    <span className={`text-[10px] tracking-[0.2em] font-medium mr-6 transition-colors ${relationshipStatus === option.label ? 'text-[#eedbc2] opacity-100' : 'opacity-60'}`}>0{index + 1}</span>
-                    <div className="flex flex-col flex-1">
-                      <span className={`font-medium text-[15px] sm:text-base mb-1 tracking-[0.1em] transition-colors ${relationshipStatus === option.label ? 'text-[#eedbc2]' : 'text-white'}`}>{option.label}</span>
-                      <span className={`text-[13px] font-light transition-colors ${relationshipStatus === option.label ? 'text-[#eedbc2]/80' : 'text-white/60'}`}>{option.sub}</span>
+                    <span className={`text-[10px] tracking-[0.2em] font-medium mr-6 transition-colors duration-300 ${relationshipStatus === option.label ? 'text-[#eedbc2] opacity-100' : 'opacity-60 group-hover:text-[#eedbc2] group-hover:opacity-100'}`}>0{index + 1}</span>
+                    <div className="flex flex-col flex-1 transition-all duration-300">
+                      <span className={`text-[15px] sm:text-base mb-1 tracking-[0.1em] transition-all duration-300 ${relationshipStatus === option.label ? 'text-[#eedbc2] font-bold drop-shadow-[0_0_8px_rgba(238,219,194,0.5)]' : 'text-white font-medium group-hover:font-bold group-hover:text-[#eedbc2] group-hover:drop-shadow-[0_0_8px_rgba(238,219,194,0.5)]'}`}>{option.label}</span>
+                      <span className={`text-[13px] font-light transition-colors duration-300 ${relationshipStatus === option.label ? 'text-[#eedbc2]/80' : 'text-white/60 group-hover:text-[#eedbc2]/90'}`}>{option.sub}</span>
                     </div>
                   </button>
                 ))}
@@ -321,27 +332,27 @@ export default function Onboarding() {
 
         {/* Bottom Button (Fixed CTA) */}
         <div 
-          className={`fixed left-1/2 -translate-x-1/2 z-50 pointer-events-none flex justify-center transition-all duration-400 ease-in-out w-[calc(100%-48px)] max-w-[340px] ${isExiting ? 'translate-y-8 opacity-0' : 'translate-y-0 opacity-100'}`}
-          style={{ bottom: 'max(24px, env(safe-area-inset-bottom))' }}
+          className={`absolute inset-x-0 z-50 pointer-events-none flex justify-center px-6 transition-all duration-400 ease-in-out ${isExiting ? 'translate-y-8 opacity-0' : 'translate-y-0 opacity-100'}`}
+          style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
         >
           <div className="w-full pointer-events-auto flex justify-center">
             {step < 5 ? (
-              ((step === 1 && name.trim().length > 0) || 
-                step === 2 || 
-                (step === 3 && taker) || 
-                (step === 4 && relationshipStatus)) && (
-                <button 
-                  onClick={handleNext}
-                  className="animate-in fade-in slide-in-from-bottom-4 duration-300 flex items-center justify-center gap-2 w-full bg-gradient-to-r from-[#eedbc2] to-[#e4cbad] hover:brightness-105 !text-black rounded-full py-4 font-semibold text-lg transition-all shadow-[0_8px_30px_rgba(238,219,194,0.25)] hover:-translate-y-1 active:translate-y-0"
-                >
-                  Continue
-                  <ArrowRight className="w-5 h-5 ml-1" />
-                </button>
-              )
+              <button 
+                onClick={handleNext}
+                disabled={!canContinue}
+                className={`animate-in fade-in slide-in-from-bottom-4 duration-300 flex items-center justify-center gap-2 w-full max-w-[340px] rounded-full py-4 font-semibold text-lg transition-all ${
+                  canContinue
+                    ? 'bg-gradient-to-r from-[#eedbc2] to-[#e4cbad] hover:brightness-105 !text-black shadow-[0_8px_30px_rgba(238,219,194,0.25)] hover:duration-300 hover:ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-1 active:scale-100 active:translate-y-0'
+                    : 'bg-white/15 !text-white/45 cursor-not-allowed'
+                }`}
+              >
+                Continue
+                <ArrowRight className="w-5 h-5 ml-1" />
+              </button>
             ) : (
               <button 
                 onClick={handleNext}
-                className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 fill-mode-both flex items-center justify-center gap-3 w-full bg-black/40 backdrop-blur-xl border border-white/40 hover:bg-white/10 !text-white rounded-[32px] py-4 font-medium text-lg transition-all shadow-[0_8px_30px_rgba(0,0,0,0.5)] hover:-translate-y-1 active:translate-y-0"
+                className="animate-in fade-in slide-in-from-bottom-4 duration-500 delay-300 fill-mode-both flex items-center justify-center gap-3 w-full max-w-[340px] bg-black/40 backdrop-blur-xl border border-white/40 hover:bg-white/20 hover:border-white/60 !text-white rounded-[32px] py-4 font-medium text-lg transition-all shadow-[0_8px_30px_rgba(0,0,0,0.5)] hover:duration-300 hover:ease-[cubic-bezier(0.34,1.56,0.64,1)] hover:-translate-y-1 active:scale-100 active:translate-y-0"
               >
                 Start
                 <ArrowRight className="w-5 h-5 text-white/80" strokeWidth={2} />

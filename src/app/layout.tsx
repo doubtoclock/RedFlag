@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Outfit, Alex_Brush } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+import { SplashScreen } from "@/components/SplashScreen";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -19,50 +20,9 @@ const alexBrush = Alex_Brush({
   subsets: ["latin"],
 });
 
-const juana = localFont({
-  src: [
-    {
-      path: "../../public/font/Fontspring-DEMO-juana-regular.otf",
-      weight: "400",
-      style: "normal",
-    },
-    {
-      path: "../../public/font/Fontspring-DEMO-juana-regularit.otf",
-      weight: "400",
-      style: "italic",
-    },
-    {
-      path: "../../public/font/Fontspring-DEMO-juana-medium.otf",
-      weight: "500",
-      style: "normal",
-    },
-    {
-      path: "../../public/font/Fontspring-DEMO-juana-mediumit.otf",
-      weight: "500",
-      style: "italic",
-    },
-    {
-      path: "../../public/font/Fontspring-DEMO-juana-semibold.otf",
-      weight: "600",
-      style: "normal",
-    },
-    {
-      path: "../../public/font/Fontspring-DEMO-juana-semiboldit.otf",
-      weight: "600",
-      style: "italic",
-    },
-    {
-      path: "../../public/font/Fontspring-DEMO-juana-bold.otf",
-      weight: "700",
-      style: "normal",
-    },
-    {
-      path: "../../public/font/Fontspring-DEMO-juana-boldit.otf",
-      weight: "700",
-      style: "italic",
-    },
-  ],
-  variable: "--font-juana",
+const sanggar = localFont({
+  src: "../../public/font/sanggar/Sanggar.ttf",
+  variable: "--font-sanggar",
 });
 
 export const metadata: Metadata = {
@@ -76,8 +36,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${outfit.variable} ${juana.variable} ${alexBrush.variable} font-sans`} suppressHydrationWarning>
-      <body className="font-sans antialiased" suppressHydrationWarning>{children}</body>
+    <html lang="en" className={`${inter.variable} ${outfit.variable} ${sanggar.variable} ${alexBrush.variable} font-sans`} suppressHydrationWarning>
+      <body className="font-sans antialiased" suppressHydrationWarning>
+        <SplashScreen />
+        {children}
+      </body>
     </html>
   );
 }

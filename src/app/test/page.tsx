@@ -1,9 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
 import { SwipeQuiz } from "@/components/quiz/SwipeQuiz";
-import { useState, useEffect } from "react";
 
 const questions = [
   // Green flags
@@ -40,131 +37,11 @@ const questions = [
 ];
 
 export default function TestPage() {
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  if (!mounted) return null;
-
   return (
     <div className="bg-[#0a0a0a] min-h-[100dvh] w-full flex justify-center">
       <div className="relative min-h-[100dvh] w-full max-w-[430px] overflow-hidden flex flex-col pt-12 pb-8 px-6 shadow-2xl shadow-black/50 border-x border-white/5 bg-black">
         <SwipeQuiz questions={questions} />
       </div>
     </div>
-  );
-}
-
-function SwipeCard({ card, index, onSwipe, isActive }: { 
-  card: typeof questions[0], 
-  index: number, 
-  onSwipe: (direction: "left" | "right") => void,
-  isActive: boolean 
-}) {
-  const x = useMotionValue(0);
-  const rotate = useTransform(x, [-200, 200], [-10, 10]);
-  
-  const redOpacity = useTransform(x, [0, -100], [0, 1]);
-  const greenOpacity = useTransform(x, [0, 100], [0, 1]);
-
-  const [exitX, setExitX] = useState(0);
-
-  useEffect(() => {
-    if (!isActive) return;
-    
-    const handleTriggerSwipe = (e: Event) => {
-      const direction = (e as CustomEvent).detail;
-      setExitX(direction === "left" ? -500 : 500);
-      onSwipe(direction);
-    };
-
-    window.addEventListener("triggerSwipe", handleTriggerSwipe);
-    return () => window.removeEventListener("triggerSwipe", handleTriggerSwipe);
-  }, [isActive, onSwipe]);
-
-  const handleDragEnd = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    const threshold = 80;
-    const velocity = info.velocity.x;
-    const offset = info.offset.x;
-
-    if (offset < -threshold || velocity < -500) {
-      setExitX(-500);
-      onSwipe("left");
-    } else if (offset > threshold || velocity > 500) {
-      setExitX(500);
-      onSwipe("right");
-    }
-  };
-
-  return (
-    <motion.div
-      style={{
-        x: isActive ? x : 0,
-        rotate: isActive ? rotate : 0,
-        zIndex: 10 - index,
-      }}
-      drag={isActive ? "x" : false}
-      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
-      dragElastic={0.8}
-      onDragEnd={handleDragEnd}
-      initial={{ 
-        scale: 0.95, 
-        y: 20, 
-        opacity: 0,
-        filter: "blur(10px)"
-      }}
-      animate={{ 
-        scale: 1 - index * 0.08, 
-        y: index * 24,
-        opacity: 1,
-        filter: index > 0 ? "blur(4px)" : "blur(0px)"
-      }}
-      exit={{ 
-        x: exitX,
-        opacity: 0, 
-        scale: 0.9, 
-        transition: { duration: 0.2 } 
-      }}
-      transition={{ type: "spring", stiffness: 400, damping: 12, mass: 0.8 }}
-      className="absolute inset-0 m-auto w-full max-w-[390px] h-[calc(100%-1.5rem)] max-h-[620px] rounded-[32px] overflow-hidden border border-white/20 shadow-[0_12px_40px_rgb(0,0,0,0.5)] cursor-grab active:cursor-grabbing bg-[#111]"
-    >
-      <Image
-        src={card.image}
-        alt="Question background"
-        fill
-        priority={isActive}
-        className="object-cover pointer-events-none"
-      />
-      
-      <motion.div 
-        style={{ opacity: redOpacity }}
-        className="absolute inset-0 bg-gradient-to-r from-red-500/40 to-transparent mix-blend-overlay pointer-events-none transition-opacity"
-      />
-      <motion.div 
-        style={{ opacity: greenOpacity }}
-        className="absolute inset-0 bg-gradient-to-l from-green-500/40 to-transparent mix-blend-overlay pointer-events-none transition-opacity"
-      />
-
-      <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/20 pointer-events-none" />
-      
-      {/* Top Left Text */}
-      <div className="absolute top-8 left-8 text-[9px] leading-[1.6] tracking-[0.15em] text-white/70 uppercase">
-        SAME PEOPLE.<br/>
-        DIFFERENT<br/>
-        PERSPECTIVES.
-        <div className="w-6 h-[1px] bg-white/40 mt-3" />
-      </div>
-
-      <div className="absolute bottom-0 left-0 right-0 p-8 pt-20 pointer-events-none">
-        <h2 className="font-juana text-white text-[32px] sm:text-4xl leading-[1.1] font-normal drop-shadow-xl tracking-tight mb-3">
-          {card.text}
-        </h2>
-        <p className="text-white/70 text-[13px] sm:text-sm font-light tracking-wide leading-relaxed max-w-[90%]">
-          {card.subtext}
-        </p>
-      </div>
-    </motion.div>
   );
 }
