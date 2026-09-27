@@ -3,7 +3,9 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import { ArrowLeft, ArrowRight, AtSign, Camera, Check, Copy, Heart, Link as LinkIcon, MessageCircle, RefreshCw, Share2, Users, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Capacitor, registerPlugin } from "@capacitor/core";
+import { toBlob } from "html-to-image";
+import { useEffect, useRef, useState } from "react";
 
 interface QuizResultsProps {
   results: { id: number; flag: "red" | "green"; correctFlag: "red" | "green" }[];
@@ -12,6 +14,12 @@ interface QuizResultsProps {
 
 type RelationshipStatus = "SINGLE" | "TALKING" | "DATING" | "IN A RELATIONSHIP" | "IT'S COMPLICATED";
 type ScoreTier = "HIGH" | "GOOD" | "AVERAGE" | "LOW";
+
+type ScoreImagePlugin = {
+  save(options: { base64: string }): Promise<{ uri: string }>;
+};
+
+const ScoreImage = registerPlugin<ScoreImagePlugin>("ScoreImage");
 
 const MESSAGES = {
   "SINGLE": {
@@ -52,6 +60,7 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
   const [showChallengeModal, setShowChallengeModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareFeedback, setShareFeedback] = useState("");
+  const scoreCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -152,8 +161,6 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
       ? `I got ${percentage}% on the Red Flag test. Can you beat my score?\n\nTake the test: ${shareUrl}`
       : `I got ${percentage}% on the Red Flag test. Can you beat my score?`;
   };
-  const supportsNativeShare = typeof navigator !== "undefined" && "share" in navigator;
-
   const copyToClipboard = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
@@ -182,38 +189,61 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
     setShareFeedback(didCopy ? "Link copied!" : "Couldn't copy the link. Please try again.");
   };
 
-  const handleInstagramShare = () => {
-    setShareFeedback("Opening Instagram…");
-    void copyToClipboard(getShareText()).then((didCopy) => {
-      setShareFeedback(didCopy ? "Share text copied — paste it into Instagram." : "Instagram is open — share your result there.");
+  const createScoreImage = async () => {
+    if (!scoreCardRef.current) {
+      throw new Error("Score card is not ready");
+    }
+
+    const image = await toBlob(scoreCardRef.current, {
+      backgroundColor: "#090909",
+      cacheBust: true,
+      pixelRatio: 1,
     });
+
+    if (!image) {
+      throw new Error("Could not create score image");
+    }
+
+    return new File([image], "red-flag-score.png", { type: "image/png" });
   };
 
-  const handleNativeShare = async () => {
+  const fileToBase64 = async (file: File) => {
+    const dataUrl = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(reader.error);
+      reader.onload = () => resolve(reader.result as string);
+      reader.readAsDataURL(file);
+    });
+    return dataUrl.split(",")[1];
+  };
+
+  const handleShareResult = async () => {
     const shareUrl = getShareUrl();
     const shareOptions = {
       title: "My Red Flag result",
-      text: `I got ${percentage}% on the Red Flag test. Can you beat my score?`,
+      text: getShareText(),
       ...(shareUrl ? { url: shareUrl } : {}),
     };
 
     try {
-      const { Capacitor } = await import("@capacitor/core");
+      setShareFeedback("Preparing your score image…");
+      const scoreImage = await createScoreImage();
 
       if (Capacitor.isNativePlatform()) {
         const { Share } = await import("@capacitor/share");
-        await Share.share({ ...shareOptions, dialogTitle: "Share your Red Flag result" });
+        const { uri } = await ScoreImage.save({ base64: await fileToBase64(scoreImage) });
+        await Share.share({ ...shareOptions, files: [uri], dialogTitle: "Share your Red Flag result" });
         return;
       }
 
-      if (supportsNativeShare) {
-        await navigator.share(shareOptions);
+      if (navigator.share && (!navigator.canShare || navigator.canShare({ files: [scoreImage] }))) {
+        await navigator.share({ ...shareOptions, files: [scoreImage] });
       } else {
-        await handleCopyLink();
+        setShareFeedback("This browser cannot share images. Open the app to share your score card.");
       }
     } catch {
-      // Dismissing a share sheet is expected; give the user a useful fallback for real failures.
-      setShareFeedback("Couldn't open sharing options. The link is ready to copy instead.");
+      // Dismissing a share sheet is expected; keep the dialog available for another try.
+      setShareFeedback("Couldn't open sharing options. Please try again.");
     }
   };
 
@@ -232,9 +262,29 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
           alt="Background"
           fill
           priority
-          className="object-cover opacity-80 mix-blend-screen"
+          className="object-cover opacity-70 mix-blend-screen"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/90 z-10" />
+        <div className="absolute inset-0 z-10 bg-black/55" />
+        <div className="absolute inset-0 z-20 bg-gradient-to-b from-black/35 via-black/15 to-black/95" />
+      </div>
+
+      {/* This off-screen card is rendered as the PNG attached to shares. */}
+      <div
+        ref={scoreCardRef}
+        aria-hidden="true"
+        className="fixed left-[-9999px] top-0 flex flex-col overflow-hidden text-white"
+        style={{ width: 1080, height: 1350, background: isRedFlag ? "linear-gradient(145deg, #180909 0%, #480f13 55%, #090909 100%)" : "linear-gradient(145deg, #07170d 0%, #1c4a24 55%, #090909 100%)", padding: 92 }}
+      >
+        <p style={{ fontSize: 31, letterSpacing: 11, opacity: 0.72, margin: 0 }}>RED FLAG TEST</p>
+        <div style={{ height: 2, width: 104, background: "rgba(255,255,255,0.55)", marginTop: 28 }} />
+        <p style={{ fontSize: 40, letterSpacing: 7, margin: "auto 0 8px", opacity: 0.78 }}>YOUR FINAL SCORE</p>
+        <p style={{ fontSize: 290, lineHeight: 0.9, fontWeight: 700, letterSpacing: -18, margin: 0 }}>{percentage}%</p>
+        <p style={{ fontSize: 44, margin: "40px 0 0", letterSpacing: 5 }}>{score} OF {totalCount} FLAGS CORRECT</p>
+        <div style={{ marginTop: 72, padding: "46px 52px", border: "2px solid rgba(255,255,255,0.22)", borderRadius: 38, background: "rgba(0,0,0,0.26)" }}>
+          <p style={{ fontSize: 30, letterSpacing: 8, margin: 0, opacity: 0.72 }}>{theme.expertTitle}</p>
+          <p style={{ fontSize: 62, lineHeight: 1.08, margin: "25px 0 0", fontFamily: "serif" }}>{theme.title}</p>
+        </div>
+        <p style={{ fontSize: 27, letterSpacing: 5, margin: "auto 0 0", opacity: 0.65 }}>CAN YOU BEAT MY SCORE?</p>
       </div>
 
       {/* Main Content Container */}
@@ -512,45 +562,31 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
 
               <div className="grid grid-cols-4 gap-3">
                 <a
-                  href={`https://wa.me/?text=${encodeURIComponent(getShareText())}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => setShareFeedback("Opening WhatsApp…")}
+                  href="#share-result"
+                  onClick={(event) => { event.preventDefault(); void handleShareResult(); }}
                   className="flex flex-col items-center gap-2 rounded-2xl py-2 text-[10px] text-white/75 transition-colors hover:bg-white/10 hover:text-white"
                 >
                   <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white"><MessageCircle className="h-5 w-5" /></span>
                   WhatsApp
                 </a>
                 <a
-                  href="https://www.instagram.com/"
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={handleInstagramShare}
+                  href="#share-result"
+                  onClick={(event) => { event.preventDefault(); void handleShareResult(); }}
                   className="flex flex-col items-center gap-2 rounded-2xl py-2 text-[10px] text-white/75 transition-colors hover:bg-white/10 hover:text-white"
                 >
                   <span className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] text-white"><Camera className="h-5 w-5" /></span>
                   Instagram
                 </a>
                 <button
-                  onClick={() => {
-                    const shareUrl = getShareUrl();
-                    if (!shareUrl) {
-                      setShareFeedback("Facebook sharing needs a configured public share URL.");
-                      return;
-                    }
-                    setShareFeedback("Opening Facebook…");
-                    window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`, "_blank", "noopener,noreferrer");
-                  }}
+                  onClick={() => void handleShareResult()}
                   className="flex flex-col items-center gap-2 rounded-2xl py-2 text-[10px] text-white/75 transition-colors hover:bg-white/10 hover:text-white"
                 >
                   <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1877F2] text-white"><Users className="h-5 w-5" /></span>
                   Facebook
                 </button>
                 <a
-                  href={`https://x.com/intent/post?text=${encodeURIComponent(getShareText())}`}
-                  target="_blank"
-                  rel="noreferrer"
-                  onClick={() => setShareFeedback("Opening X…")}
+                  href="#share-result"
+                  onClick={(event) => { event.preventDefault(); void handleShareResult(); }}
                   className="flex flex-col items-center gap-2 rounded-2xl py-2 text-[10px] text-white/75 transition-colors hover:bg-white/10 hover:text-white"
                 >
                   <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-black"><AtSign className="h-5 w-5" /></span>
@@ -567,7 +603,7 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
                   {shareFeedback === "Link copied!" ? "Link copied" : "Copy link"}
                 </button>
                 <button
-                  onClick={handleNativeShare}
+                  onClick={() => void handleShareResult()}
                   className="mt-2 flex w-full items-center justify-center gap-2 py-2 text-[12px] text-white/55 transition-colors hover:text-white"
                 >
                   <Share2 className="h-3.5 w-3.5" /> More sharing options

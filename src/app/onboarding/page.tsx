@@ -54,7 +54,7 @@ export default function Onboarding() {
 
   return (
     <div className="bg-[#0a0a0a] min-h-[100dvh] w-full flex justify-center">
-      <div className="relative h-[100dvh] w-full max-w-[430px] overflow-hidden flex flex-col py-12 px-6 shadow-2xl shadow-black/50 border-x border-white/5 bg-black">
+      <div className="relative h-[100dvh] w-full max-w-[430px] overflow-hidden flex flex-col py-12 px-6 shadow-2xl shadow-black/50 bg-black">
         
         {/* Background Image */}
         <div className="absolute inset-0 z-0">

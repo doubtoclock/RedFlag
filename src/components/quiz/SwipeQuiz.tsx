@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Flag } from "lucide-react";
 import { SwipeCard } from "./SwipeCard";
 import { FlagReveal } from "./FlagReveal";
@@ -23,6 +24,7 @@ interface SwipeQuizProps {
 }
 
 export function SwipeQuiz({ questions }: SwipeQuizProps) {
+  const router = useRouter();
   const [cards, setCards] = useState<Question[]>([]);
   const [results, setResults] = useState<{ id: number; flag: "red" | "green"; correctFlag: "red" | "green" }[]>([]);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -263,13 +265,7 @@ export function SwipeQuiz({ questions }: SwipeQuizProps) {
             key="results"
             results={results}
             onRetake={() => {
-              // Reshuffle questions on retake to provide variation
-              const shuffled = [...questions].sort(() => 0.5 - Math.random());
-              setCards(shuffled.slice(0, 20));
-              setResults([]);
-              setRevealType(null);
-              setIsTransitioning(false);
-              setShowResults(false);
+              router.push("/onboarding");
             }}
           />
         )}

@@ -13,11 +13,13 @@
 html, body {
   margin: 0;
   padding: 0;
-  min-height: 100vh;
-  background-color: var(--background);
+  width: 100%;
+  min-height: 100%;
+  background-color: #000;
   color: var(--foreground);
   font-family: var(--font-inter), sans-serif;
   overflow-x: hidden;
+  overscroll-behavior: none;
   scroll-behavior: smooth;
 }
 

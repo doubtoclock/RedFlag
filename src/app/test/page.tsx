@@ -39,7 +39,7 @@ const questions = [
 export default function TestPage() {
   return (
     <div className="bg-[#0a0a0a] min-h-[100dvh] w-full flex justify-center">
-      <div className="relative min-h-[100dvh] w-full max-w-[430px] overflow-hidden flex flex-col pt-12 pb-8 px-6 shadow-2xl shadow-black/50 border-x border-white/5 bg-black">
+      <div className="relative min-h-[100dvh] w-full max-w-[430px] overflow-hidden flex flex-col pt-12 pb-8 px-6 shadow-2xl shadow-black/50 bg-black">
         <SwipeQuiz questions={questions} />
       </div>
     </div>

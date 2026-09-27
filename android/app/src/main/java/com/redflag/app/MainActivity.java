@@ -2,6 +2,7 @@ package com.redflag.app;
 
 import android.os.Bundle;
 import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Build;
 
 import androidx.core.view.WindowCompat;
@@ -13,7 +14,9 @@ import com.getcapacitor.BridgeActivity;
 public class MainActivity extends BridgeActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
+        registerPlugin(ScoreImagePlugin.class);
         super.onCreate(savedInstanceState);
+        getWindow().setBackgroundDrawable(new ColorDrawable(Color.BLACK));
         enableFullscreen();
         // Capacitor attaches its WebView after Activity#onCreate. Apply the
         // immersive flags again once that attachment has completed so the
