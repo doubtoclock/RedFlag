@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, AtSign, Camera, Check, Copy, Heart, Link as Link
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { toBlob } from "html-to-image";
 import { useEffect, useRef, useState } from "react";
+import { ShareCardTemplate } from "./ShareCardTemplate";
 
 interface QuizResultsProps {
   results: { id: number; flag: "red" | "green"; correctFlag: "red" | "green" }[];
@@ -269,23 +270,7 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
       </div>
 
       {/* This off-screen card is rendered as the PNG attached to shares. */}
-      <div
-        ref={scoreCardRef}
-        aria-hidden="true"
-        className="fixed left-[-9999px] top-0 flex flex-col overflow-hidden text-white"
-        style={{ width: 1080, height: 1350, background: isRedFlag ? "linear-gradient(145deg, #180909 0%, #480f13 55%, #090909 100%)" : "linear-gradient(145deg, #07170d 0%, #1c4a24 55%, #090909 100%)", padding: 92 }}
-      >
-        <p style={{ fontSize: 31, letterSpacing: 11, opacity: 0.72, margin: 0 }}>RED FLAG TEST</p>
-        <div style={{ height: 2, width: 104, background: "rgba(255,255,255,0.55)", marginTop: 28 }} />
-        <p style={{ fontSize: 40, letterSpacing: 7, margin: "auto 0 8px", opacity: 0.78 }}>YOUR FINAL SCORE</p>
-        <p style={{ fontSize: 290, lineHeight: 0.9, fontWeight: 700, letterSpacing: -18, margin: 0 }}>{percentage}%</p>
-        <p style={{ fontSize: 44, margin: "40px 0 0", letterSpacing: 5 }}>{score} OF {totalCount} FLAGS CORRECT</p>
-        <div style={{ marginTop: 72, padding: "46px 52px", border: "2px solid rgba(255,255,255,0.22)", borderRadius: 38, background: "rgba(0,0,0,0.26)" }}>
-          <p style={{ fontSize: 30, letterSpacing: 8, margin: 0, opacity: 0.72 }}>{theme.expertTitle}</p>
-          <p style={{ fontSize: 62, lineHeight: 1.08, margin: "25px 0 0", fontFamily: "serif" }}>{theme.title}</p>
-        </div>
-        <p style={{ fontSize: 27, letterSpacing: 5, margin: "auto 0 0", opacity: 0.65 }}>CAN YOU BEAT MY SCORE?</p>
-      </div>
+      <ShareCardTemplate ref={scoreCardRef} percentage={percentage} isRedFlag={isRedFlag} className="fixed left-[-9999px] top-0" />
 
       {/* Main Content Container */}
       <div className="absolute inset-0 m-auto flex h-[100dvh] w-full max-w-[430px] flex-col overflow-x-hidden overflow-y-auto overscroll-contain bg-transparent pb-[calc(2rem+env(safe-area-inset-bottom))] font-sans pointer-events-auto">
