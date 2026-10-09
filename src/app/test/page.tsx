@@ -1,10 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
 import { SwipeQuiz } from "@/components/quiz/SwipeQuiz";
-import { Capacitor } from "@capacitor/core";
-
-const PLAY_STORE_URL = "https://play.google.com/store/apps/details?id=com.redflag.app";
 
 const questions = [
   // Green flags
@@ -41,35 +37,6 @@ const questions = [
 ];
 
 export default function TestPage() {
-  const isNative = Capacitor.isNativePlatform();
-
-  useEffect(() => {
-    if (!isNative) {
-      window.location.replace(PLAY_STORE_URL);
-    }
-  }, [isNative]);
-
-  if (!isNative) {
-    return (
-      <div className="bg-[#0a0a0a] min-h-[100dvh] w-full flex justify-center items-center font-sans text-white">
-        <div className="flex flex-col items-center gap-6 px-6 text-center">
-          <h1 className="font-juana text-6xl font-normal leading-[0.92] pt-[0.08em] tracking-tight drop-shadow-2xl">
-            RED<br/>FLAG
-          </h1>
-          <p className="text-[14px] text-white/70 font-light tracking-[0.1em] uppercase">
-            Think you can spot the red flags?
-          </p>
-          <a
-            href={PLAY_STORE_URL}
-            className="mt-4 w-full max-w-[280px] rounded-full py-4 font-medium text-[15px] transition-all duration-300 bg-transparent border border-white/30 hover:bg-white/20 hover:border-white/60 text-white shadow-[0_10px_40px_rgba(255,255,255,0.1)] inline-block"
-          >
-            TAKE THE TEST
-          </a>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="bg-[#0a0a0a] min-h-[100dvh] w-full flex justify-center">
       <div className="relative min-h-[100dvh] w-full max-w-[430px] overflow-hidden flex flex-col px-6 [padding-top:var(--app-top-inset)] [padding-bottom:var(--app-bottom-inset)] shadow-2xl shadow-black/50 bg-black">
