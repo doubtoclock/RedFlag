@@ -8,6 +8,10 @@
   --secondary: #ec4899;
   --surface: rgba(30, 32, 40, 0.6);
   --surface-border: rgba(255, 255, 255, 0.08);
+  /* Keep screen chrome clear of Android cutouts without reserving a desktop-like
+     amount of space when there is no inset. */
+  --app-top-inset: max(1.5rem, env(safe-area-inset-top));
+  --app-bottom-inset: max(1.5rem, env(safe-area-inset-bottom));
 }
 
 html, body {

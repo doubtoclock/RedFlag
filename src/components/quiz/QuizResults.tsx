@@ -5,6 +5,7 @@ import Image from "next/image";
 import { ArrowLeft, ArrowRight, AtSign, Camera, Check, Copy, Heart, Link as LinkIcon, MessageCircle, RefreshCw, Share2, Users, X } from "lucide-react";
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { toBlob } from "html-to-image";
+import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import { ShareCardTemplate } from "./ShareCardTemplate";
 
@@ -61,6 +62,7 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
   const [showChallengeModal, setShowChallengeModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareFeedback, setShareFeedback] = useState("");
+  const [isPreparingShare, setIsPreparingShare] = useState(false);
   const scoreCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -195,10 +197,45 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
       throw new Error("Score card is not ready");
     }
 
-    const image = await toBlob(scoreCardRef.current, {
+    const scoreCard = scoreCardRef.current;
+
+    // html-to-image serializes the card into an SVG before drawing it on a
+    // canvas. Android WebView can produce a blank canvas when this happens
+    // while the card's fonts or local image assets are still pending.
+    if (document.fonts?.ready) {
+      await document.fonts.ready;
+    }
+
+    await Promise.all(
+      Array.from(scoreCard.querySelectorAll("img")).map(async (image) => {
+        if (!image.complete) {
+          await new Promise<void>((resolve, reject) => {
+            image.addEventListener("load", () => resolve(), { once: true });
+            image.addEventListener("error", () => reject(new Error(`Couldn't load ${image.src}`)), { once: true });
+          });
+        }
+
+        if (!image.naturalWidth) {
+          throw new Error(`Couldn't load ${image.src}`);
+        }
+
+        if ("decode" in image) {
+          await image.decode();
+        }
+      })
+    );
+
+    // Give WebView a paint after assets decode before its SVG/canvas snapshot.
+    await new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve())));
+
+    const image = await toBlob(scoreCard, {
       backgroundColor: "#090909",
       cacheBust: true,
       pixelRatio: 1,
+      width: 1080,
+      height: 1920,
+      canvasWidth: 1080,
+      canvasHeight: 1920,
     });
 
     if (!image) {
@@ -219,16 +256,22 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
   };
 
   const handleShareResult = async () => {
-    const shareUrl = getShareUrl();
+    if (isPreparingShare) return;
+
     const shareOptions = {
       title: "My Red Flag result",
       text: getShareText(),
-      ...(shareUrl ? { url: shareUrl } : {}),
     };
 
     try {
-      setShareFeedback("Preparing your score image…");
+      setIsPreparingShare(true);
+      setShareFeedback("");
       const scoreImage = await createScoreImage();
+
+      // The spinner is for image generation only; the native share sheet owns
+      // the interface after this point.
+      setIsPreparingShare(false);
+      await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
 
       if (Capacitor.isNativePlatform()) {
         const { Share } = await import("@capacitor/share");
@@ -245,6 +288,8 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
     } catch {
       // Dismissing a share sheet is expected; keep the dialog available for another try.
       setShareFeedback("Couldn't open sharing options. Please try again.");
+    } finally {
+      setIsPreparingShare(false);
     }
   };
 
@@ -269,8 +314,15 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
         <div className="absolute inset-0 z-20 bg-gradient-to-b from-black/35 via-black/15 to-black/95" />
       </div>
 
-      {/* This off-screen card is rendered as the PNG attached to shares. */}
-      <ShareCardTemplate ref={scoreCardRef} percentage={percentage} isRedFlag={isRedFlag} className="fixed left-[-9999px] top-0" />
+      {/*
+        The score card must not live inside this overflow-hidden result layer.
+        A portal lets WebView paint the full capture surface before html-to-image
+        serializes it, while the negative stack keeps it out of the interface.
+      */}
+      {typeof document !== "undefined" && createPortal(
+        <ShareCardTemplate ref={scoreCardRef} percentage={percentage} isRedFlag={isRedFlag} className="pointer-events-none fixed left-0 top-0 -z-10" />,
+        document.body
+      )}
 
       {/* Main Content Container */}
       <div className="absolute inset-0 m-auto flex h-[100dvh] w-full max-w-[430px] flex-col overflow-x-hidden overflow-y-auto overscroll-contain bg-transparent pb-[calc(2rem+env(safe-area-inset-bottom))] font-sans pointer-events-auto">
@@ -549,7 +601,8 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
                 <a
                   href="#share-result"
                   onClick={(event) => { event.preventDefault(); void handleShareResult(); }}
-                  className="flex flex-col items-center gap-2 rounded-2xl py-2 text-[10px] text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                  aria-disabled={isPreparingShare}
+                  className={`flex flex-col items-center gap-2 rounded-2xl py-2 text-[10px] text-white/75 transition-colors hover:bg-white/10 hover:text-white ${isPreparingShare ? "pointer-events-none opacity-45" : ""}`}
                 >
                   <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] text-white"><MessageCircle className="h-5 w-5" /></span>
                   WhatsApp
@@ -557,14 +610,16 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
                 <a
                   href="#share-result"
                   onClick={(event) => { event.preventDefault(); void handleShareResult(); }}
-                  className="flex flex-col items-center gap-2 rounded-2xl py-2 text-[10px] text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                  aria-disabled={isPreparingShare}
+                  className={`flex flex-col items-center gap-2 rounded-2xl py-2 text-[10px] text-white/75 transition-colors hover:bg-white/10 hover:text-white ${isPreparingShare ? "pointer-events-none opacity-45" : ""}`}
                 >
                   <span className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-br from-[#833AB4] via-[#FD1D1D] to-[#FCAF45] text-white"><Camera className="h-5 w-5" /></span>
                   Instagram
                 </a>
                 <button
                   onClick={() => void handleShareResult()}
-                  className="flex flex-col items-center gap-2 rounded-2xl py-2 text-[10px] text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                  disabled={isPreparingShare}
+                  className="flex flex-col items-center gap-2 rounded-2xl py-2 text-[10px] text-white/75 transition-colors hover:bg-white/10 hover:text-white disabled:cursor-wait disabled:opacity-45"
                 >
                   <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[#1877F2] text-white"><Users className="h-5 w-5" /></span>
                   Facebook
@@ -572,7 +627,8 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
                 <a
                   href="#share-result"
                   onClick={(event) => { event.preventDefault(); void handleShareResult(); }}
-                  className="flex flex-col items-center gap-2 rounded-2xl py-2 text-[10px] text-white/75 transition-colors hover:bg-white/10 hover:text-white"
+                  aria-disabled={isPreparingShare}
+                  className={`flex flex-col items-center gap-2 rounded-2xl py-2 text-[10px] text-white/75 transition-colors hover:bg-white/10 hover:text-white ${isPreparingShare ? "pointer-events-none opacity-45" : ""}`}
                 >
                   <span className="flex h-12 w-12 items-center justify-center rounded-full bg-white text-black"><AtSign className="h-5 w-5" /></span>
                   X
@@ -589,6 +645,7 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
                 </button>
                 <button
                   onClick={() => void handleShareResult()}
+                  disabled={isPreparingShare}
                   className="mt-2 flex w-full items-center justify-center gap-2 py-2 text-[12px] text-white/55 transition-colors hover:text-white"
                 >
                   <Share2 className="h-3.5 w-3.5" /> More sharing options
@@ -597,6 +654,31 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
                   <p className="mt-3 text-center text-[11px] text-green-300">{shareFeedback}</p>
                 )}
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isPreparingShare && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 px-5 backdrop-blur-sm pointer-events-auto"
+            role="status"
+            aria-live="polite"
+            aria-label="Preparing your image"
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.96, y: 10 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.96, y: 10 }}
+              className="flex w-full max-w-[260px] flex-col items-center rounded-[24px] border border-white/15 bg-[#121212]/95 px-6 py-7 shadow-2xl"
+            >
+              <div className="h-10 w-10 animate-spin rounded-full border-2 border-white/20 border-t-[#c2f2b3]" />
+              <p className="mt-5 text-center text-[15px] font-medium text-white">Preparing your image...</p>
+              <p className="mt-1 text-center text-[11px] text-white/50">Just a moment</p>
             </motion.div>
           </motion.div>
         )}

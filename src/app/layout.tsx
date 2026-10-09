@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Outfit, Alex_Brush } from "next/font/google";
 import localFont from "next/font/local";
 import "./globals.css";
+import { AppLinkRouter } from "@/components/AppLinkRouter";
 import { SplashScreen } from "@/components/SplashScreen";
 
 const inter = Inter({
@@ -26,8 +27,34 @@ const sanggar = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "RedFlag | Premium AI Insights",
-  description: "Discover actionable AI-powered insights with an elegant, responsive, and blazing fast interface.",
+  title: "Red Flag",
+  description: "A relationship-scenario game for spotting red and green flags.",
+  applicationName: "Red Flag",
+  manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Red Flag",
+    statusBarStyle: "black-translucent",
+  },
+  icons: {
+    icon: "/favicon.ico",
+    apple: [
+      {
+        url: "/apple-touch-icon.png",
+        sizes: "192x192",
+        type: "image/png",
+      },
+    ],
+  },
+  formatDetection: {
+    telephone: false,
+  },
+};
+
+export const viewport: Viewport = {
+  themeColor: "#000000",
+  colorScheme: "dark",
+  viewportFit: "cover",
 };
 
 export default function RootLayout({
@@ -39,6 +66,7 @@ export default function RootLayout({
     <html lang="en" className={`${inter.variable} ${outfit.variable} ${sanggar.variable} ${alexBrush.variable} font-sans`} suppressHydrationWarning>
       <body className="font-sans antialiased" suppressHydrationWarning>
         <SplashScreen />
+        <AppLinkRouter />
         {children}
       </body>
     </html>

@@ -1,5 +1,12 @@
 apply plugin: 'com.android.application'
 
+def releaseSigningProperties = new Properties()
+def releaseSigningPropertiesFile = rootProject.file('signing.properties')
+
+if (releaseSigningPropertiesFile.isFile()) {
+    releaseSigningPropertiesFile.withInputStream { releaseSigningProperties.load(it) }
+}
+
 android {
     namespace = "com.redflag.app"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -16,11 +23,24 @@ android {
             ignoreAssetsPattern = '!.svn:!.git:!.ds_store:!*.scc:.*:!CVS:!thumbs.db:!picasa.ini:!*~'
         }
     }
+    signingConfigs {
+        release {
+            def requiredProperties = ['storeFile', 'storePassword', 'keyAlias', 'keyPassword']
+            def missingProperties = requiredProperties.findAll { !releaseSigningProperties.getProperty(it) }
+
+            if (!releaseSigningPropertiesFile.isFile() || !missingProperties.isEmpty()) {
+                throw new GradleException("Release signing credentials are missing or incomplete in ${releaseSigningPropertiesFile}")
+            }
+
+            storeFile rootProject.file(releaseSigningProperties.getProperty('storeFile'))
+            storePassword releaseSigningProperties.getProperty('storePassword')
+            keyAlias releaseSigningProperties.getProperty('keyAlias')
+            keyPassword releaseSigningProperties.getProperty('keyPassword')
+        }
+    }
     buildTypes {
         release {
-            // Keep this release installable for direct sharing. Replace this
-            // with a private production keystore before publishing to a store.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }

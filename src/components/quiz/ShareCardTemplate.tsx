@@ -8,6 +8,11 @@ interface ShareCardTemplateProps {
 
 export const ShareCardTemplate = forwardRef<HTMLDivElement, ShareCardTemplateProps>(
   ({ percentage, isRedFlag, className = "" }, ref) => {
+    const score = `${percentage}%`;
+    // Scores from 0–99 use three characters while 100% needs an extra digit.
+    // Sizing from the rendered value protects the fixed 9:16 card margins.
+    const scoreFontSize = score.length >= 4 ? "286px" : "338px";
+
     return (
       <div
         ref={ref}
@@ -16,7 +21,7 @@ export const ShareCardTemplate = forwardRef<HTMLDivElement, ShareCardTemplatePro
           width: "1080px",
           height: "1920px",
           background: "#090909",
-          padding: "120px 80px 80px 80px",
+          padding: "0",
           fontFamily: "sans-serif",
           position: "relative"
         }}
@@ -47,93 +52,108 @@ export const ShareCardTemplate = forwardRef<HTMLDivElement, ShareCardTemplatePro
         }} />
 
         {/* Top accents */}
-        <div style={{ position: "absolute", top: "80px", left: "70px", zIndex: 1, transform: "rotate(-6deg)" }}>
-          <p style={{ fontSize: "36px", margin: "0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.9)" }}>SAME PEOPLE.</p>
-          <p style={{ fontSize: "42px", margin: "-5px 0 0 0", fontFamily: "var(--font-sanggar)", color: isRedFlag ? "#f87171" : "#4ade80" }}>DIFFERENT</p>
-          <p style={{ fontSize: "36px", margin: "-5px 0 0 0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.9)" }}>PERSPECTIVES.</p>
+        <div style={{ position: "absolute", top: "72px", left: "64px", zIndex: 1, transform: "rotate(-6deg)", opacity: 0.78 }}>
+          <p style={{ fontSize: "32px", margin: "0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.9)" }}>SAME PEOPLE.</p>
+          <p style={{ fontSize: "38px", margin: "-4px 0 0 0", fontFamily: "var(--font-sanggar)", color: isRedFlag ? "#f87171" : "#4ade80" }}>DIFFERENT</p>
+          <p style={{ fontSize: "32px", margin: "-4px 0 0 0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.9)" }}>PERSPECTIVES.</p>
         </div>
         
-        <div style={{ position: "absolute", top: "70px", right: "70px", zIndex: 1, textAlign: "center", transform: "rotate(4deg)" }}>
-          <p style={{ fontSize: "32px", margin: "0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.85)" }}>BETTER</p>
-          <p style={{ fontSize: "32px", margin: "-5px 0 0 0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.85)" }}>PEOPLE</p>
-          <p style={{ fontSize: "32px", margin: "-5px 0 0 0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.85)" }}>BRIGHTER</p>
-          <p style={{ fontSize: "32px", margin: "-5px 0 0 0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.85)" }}>DAYS</p>
+        <div style={{ position: "absolute", top: "64px", right: "64px", zIndex: 1, textAlign: "center", transform: "rotate(4deg)", opacity: 0.72 }}>
+          <p style={{ fontSize: "28px", margin: "0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.85)" }}>BETTER</p>
+          <p style={{ fontSize: "28px", margin: "-4px 0 0 0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.85)" }}>PEOPLE</p>
+          <p style={{ fontSize: "28px", margin: "-4px 0 0 0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.85)" }}>BRIGHTER</p>
+          <p style={{ fontSize: "28px", margin: "-4px 0 0 0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.85)" }}>DAYS</p>
         </div>
 
-        {/* Content */}
-        <div style={{ zIndex: 1, display: "flex", flexDirection: "column", alignItems: "center", width: "100%" }}>
-          <p style={{ fontSize: "46px", letterSpacing: "18px", margin: "0 0 5px 0", opacity: 0.95, fontWeight: 600, fontFamily: "var(--font-outfit), sans-serif" }}>I SCORED</p>
+        {/* The fixed grid keeps every foreground element in its own 9:16 region. */}
+        <div style={{
+          position: "relative",
+          zIndex: 2,
+          display: "grid",
+          gridTemplateRows: "90px 350px 330px 470px 180px",
+          rowGap: "28px",
+          alignContent: "end",
+          width: "100%",
+          height: "100%",
+          padding: "170px 80px 72px",
+          boxSizing: "border-box"
+        }}>
+          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
+            <p style={{ fontSize: "42px", letterSpacing: "16px", margin: "0", opacity: 0.95, fontWeight: 600, fontFamily: "var(--font-outfit), sans-serif" }}>I SCORED</p>
+          </div>
           
-          <p style={{ 
-            fontSize: "400px", 
-            lineHeight: 0.85, 
-            fontWeight: 800, 
-            margin: "0 0 20px 0",
-            fontFamily: "serif",
-            color: isRedFlag ? "#fecaca" : "#dcfce7",
-            textShadow: isRedFlag ? "0 0 100px rgba(239,68,68,0.8)" : "0 0 100px rgba(34,197,94,0.8)"
-          }}>
-            {percentage}%
-          </p>
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minWidth: 0 }}>
+            <p style={{
+              maxWidth: "920px",
+              fontSize: scoreFontSize,
+              lineHeight: 0.86,
+              fontWeight: 800,
+              margin: "0",
+              fontFamily: "serif",
+              color: isRedFlag ? "#fecaca" : "#dcfce7",
+              textShadow: isRedFlag ? "0 0 78px rgba(239,68,68,0.72)" : "0 0 78px rgba(34,197,94,0.72)",
+              whiteSpace: "nowrap"
+            }}>
+              {score}
+            </p>
+          </div>
 
-          <p style={{ fontSize: "85px", margin: "25px 0 0 0", fontFamily: "var(--font-sanggar)", opacity: 0.95, transform: "rotate(-3deg)" }}>I&apos;M A</p>
-          
-          <p style={{ 
-            fontSize: "180px", 
-            lineHeight: 0.9, 
-            fontWeight: 900, 
-            margin: "-10px 0 30px 0",
-            fontFamily: "serif",
-            color: isRedFlag ? "#fca5a5" : "#c2f2b3",
-            textShadow: isRedFlag ? "0 0 80px rgba(239,68,68,0.6)" : "0 0 80px rgba(34,197,94,0.6)",
-            textAlign: "center",
-            letterSpacing: "-2px"
-          }}>
-            {isRedFlag ? (
-              <>RED<br/>FLAG</>
-            ) : (
-              "GREEN FLAG"
-            )}
-          </p>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
+            <p style={{ fontSize: "72px", lineHeight: 1, margin: "0 0 16px", fontFamily: "var(--font-sanggar)", opacity: 0.95, transform: "rotate(-3deg)" }}>I&apos;M A</p>
+            <p style={{
+              fontSize: isRedFlag ? "144px" : "124px",
+              lineHeight: isRedFlag ? 0.82 : 0.9,
+              fontWeight: 900,
+              margin: "0",
+              fontFamily: "serif",
+              color: isRedFlag ? "#fca5a5" : "#c2f2b3",
+              textShadow: isRedFlag ? "0 0 64px rgba(239,68,68,0.58)" : "0 0 64px rgba(34,197,94,0.58)",
+              textAlign: "center",
+              letterSpacing: "-2px"
+            }}>
+              {isRedFlag ? <>RED<br/>FLAG</> : "GREEN FLAG"}
+            </p>
+          </div>
 
           {/* Flag Graphic */}
-          <div style={{ position: "relative", width: "700px", height: "450px", marginBottom: "40px", display: "flex", justifyContent: "center", alignItems: "center" }}>
+          <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center" }}>
             <img 
               src={isRedFlag ? "/red-flag.png" : "/green-flag.png"} 
               alt="Flag" 
               style={{ 
-                width: "100%", 
-                height: "100%", 
+                width: "680px",
+                height: "420px",
                 objectFit: "contain",
-                filter: isRedFlag ? "drop-shadow(0 0 70px rgba(239,68,68,0.7))" : "drop-shadow(0 0 70px rgba(34,197,94,0.7))",
-                transform: "scale(1.1)"
+                filter: isRedFlag ? "drop-shadow(0 0 60px rgba(239,68,68,0.7))" : "drop-shadow(0 0 60px rgba(34,197,94,0.7))"
               }} 
               crossOrigin="anonymous"
             />
           </div>
 
-          <p style={{ 
-            fontSize: "80px", 
-            margin: "0", 
-            textAlign: "center",
-            fontFamily: "var(--font-sanggar)",
-            color: "white",
-            transform: "rotate(-2deg)",
-            textShadow: "2px 4px 10px rgba(0,0,0,0.5)"
-          }}>
-            THINK YOU CAN
-          </p>
-          <p style={{ 
-            fontSize: "90px", 
-            margin: "-10px 0 0 0", 
-            textAlign: "center",
-            fontFamily: "var(--font-sanggar)",
-            color: isRedFlag ? "#f87171" : "#4ade80",
-            transform: "rotate(-2deg)",
-            textShadow: isRedFlag ? "0 0 30px rgba(239,68,68,0.5)" : "0 0 30px rgba(34,197,94,0.5)"
-          }}>
-            BEAT MY SCORE? 👀
-          </p>
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", transform: "rotate(-2deg)" }}>
+            <p style={{
+              fontSize: "64px",
+              lineHeight: 0.9,
+              margin: "0 0 12px",
+              textAlign: "center",
+              fontFamily: "var(--font-sanggar)",
+              color: "white",
+              textShadow: "2px 4px 10px rgba(0,0,0,0.5)"
+            }}>
+              THINK YOU CAN
+            </p>
+            <p style={{
+              fontSize: "72px",
+              lineHeight: 0.9,
+              margin: "0",
+              textAlign: "center",
+              fontFamily: "var(--font-sanggar)",
+              color: isRedFlag ? "#f87171" : "#4ade80",
+              textShadow: isRedFlag ? "0 0 30px rgba(239,68,68,0.5)" : "0 0 30px rgba(34,197,94,0.5)"
+            }}>
+              BEAT MY SCORE? 👀
+            </p>
+          </div>
         </div>
       </div>
     );

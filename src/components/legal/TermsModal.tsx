@@ -123,7 +123,7 @@ export function TermsModal({ isOpen, onClose }: { isOpen: boolean, onClose: () =
 
               <h3 className="text-white font-medium text-base mt-6">21. Contact Us</h3>
               <p>If you have questions, concerns, or requests regarding these Terms or the Red Flag Service, please contact us at:</p>
-              <p><strong>Legal Email:</strong> legal@redflag.test</p>
+              <p><strong>Legal Email:</strong> redflag.app.support@gmail.com</p>
             </div>
             
             <div className="p-4 border-t border-white/10 shrink-0">

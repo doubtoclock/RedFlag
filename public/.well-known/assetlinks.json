@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.redflag.app",
+    "sha256_cert_fingerprints": [
+      "08:18:65:20:2F:26:B1:98:97:5F:4D:08:10:B1:DE:08:A8:D1:62:94:E6:3C:63:EE:D4:B0:BF:99:CD:6A:40:C4"
+    ]
+  }
+}]

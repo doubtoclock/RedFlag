@@ -66,7 +66,7 @@ export function PrivacyModal({ isOpen, onClose }: { isOpen: boolean, onClose: ()
               
               <h3 className="text-white font-medium text-base mt-6">7. Contact Us</h3>
               <p>If you have questions, concerns, or requests regarding this Privacy Policy, please contact us at:</p>
-              <p><strong>Privacy Email:</strong> privacy@redflag.test</p>
+              <p><strong>Privacy Email:</strong> redflag.app.support@gmail.com</p>
             </div>
             
             <div className="p-4 border-t border-white/10 shrink-0">

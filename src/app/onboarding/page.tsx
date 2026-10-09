@@ -54,7 +54,7 @@ export default function Onboarding() {
 
   return (
     <div className="bg-[#0a0a0a] min-h-[100dvh] w-full flex justify-center">
-      <div className="relative h-[100dvh] w-full max-w-[430px] overflow-hidden flex flex-col py-12 px-6 shadow-2xl shadow-black/50 bg-black">
+      <div className="relative h-[100dvh] w-full max-w-[430px] overflow-hidden flex flex-col px-6 [padding-top:var(--app-top-inset)] [padding-bottom:var(--app-bottom-inset)] shadow-2xl shadow-black/50 bg-black">
         
         {/* Background Image */}
         <div className="absolute inset-0 z-0">
@@ -80,7 +80,7 @@ export default function Onboarding() {
 
         {/* Top Navigation */}
         {step < 5 && (
-          <div className="relative z-10 flex items-center justify-between mb-4 pt-4 px-2">
+          <div className="relative z-10 flex items-center justify-between mb-4 px-2">
             {step === 1 ? (
               <Link href="/" className="p-2 -ml-2 text-white hover:text-white/70 transition-colors">
                 <ArrowLeft className="w-6 h-6" strokeWidth={1.5} />
@@ -292,7 +292,7 @@ export default function Onboarding() {
           )}
 
           {step === 5 && (
-            <div className="animate-in fade-in slide-in-from-right-4 duration-[1500ms] flex flex-col flex-1 px-4 items-center relative pt-4">
+            <div className="animate-in fade-in slide-in-from-right-4 duration-[1500ms] flex flex-col flex-1 px-4 items-center relative pt-2">
               <button 
                 onClick={handleBack} 
                 className="absolute top-4 left-0 p-2 text-white hover:text-white/70 transition-colors z-50"
@@ -300,7 +300,7 @@ export default function Onboarding() {
                 <ArrowLeft className="w-6 h-6" strokeWidth={1.5} />
               </button>
 
-              <div className="mt-12 mb-auto text-white/80 font-medium tracking-[0.2em] text-sm opacity-90 drop-shadow-md">
+              <div className="mt-6 mb-8 text-white/80 font-medium tracking-[0.2em] text-sm opacity-90 drop-shadow-md">
                 05 / 05
               </div>
               
@@ -333,7 +333,7 @@ export default function Onboarding() {
         {/* Bottom Button (Fixed CTA) */}
         <div 
           className={`absolute inset-x-0 z-50 pointer-events-none flex justify-center px-6 transition-all duration-400 ease-in-out ${isExiting ? 'translate-y-8 opacity-0' : 'translate-y-0 opacity-100'}`}
-          style={{ bottom: 'calc(1rem + env(safe-area-inset-bottom))' }}
+          style={{ bottom: 'calc(1.5rem + env(safe-area-inset-bottom))' }}
         >
           <div className="w-full pointer-events-auto flex justify-center">
             {step < 5 ? (

@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<full-backup-content>
+    <!-- Keep WebView localStorage out of cloud and device-transfer backups on Android 11 and lower. -->
+    <exclude domain="root" path="app_webview/" />
+</full-backup-content>

@@ -20,9 +20,9 @@ export default function LandingContent() {
       <TermsModal isOpen={showTerms} onClose={() => setShowTerms(false)} />
       
       {/* Main Title Area */}
-      <div className="relative z-10 px-8 mt-[15vh]">
+      <div className="relative z-10 px-8 mt-[9vh] sm:mt-[12vh]">
         <h1 
-          className="font-juana text-7xl sm:text-8xl font-normal leading-[0.85] tracking-tight drop-shadow-2xl text-gradient-g inline-block animate-in fade-in slide-in-from-bottom-8 duration-1000 fill-mode-both"
+          className="font-juana text-7xl sm:text-8xl font-normal leading-[0.92] pt-[0.08em] tracking-tight drop-shadow-2xl text-gradient-g inline-block animate-in fade-in slide-in-from-bottom-8 duration-1000 fill-mode-both"
           style={{ animationDelay: '300ms' }}
         >
           RED<br/>FLAG
@@ -37,7 +37,7 @@ export default function LandingContent() {
       </div>
 
       {/* Bottom Section */}
-      <div className="relative z-10 mt-auto flex flex-col items-center px-6 pb-20">
+      <div className="relative z-10 mt-auto flex flex-col items-center px-6 [padding-bottom:var(--app-bottom-inset)]">
         <div className="w-full max-w-[280px] mb-6 flex flex-col gap-4 animate-in fade-in slide-in-from-bottom-8 fill-mode-both" style={{ animationDelay: '600ms' }}>
           <label className="flex items-center gap-3 cursor-pointer group">
             <div className="relative flex items-center justify-center w-5 h-5 border border-white/40 rounded bg-white/5 group-hover:border-white/70 transition-colors flex-shrink-0">
