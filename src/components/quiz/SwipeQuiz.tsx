@@ -10,14 +10,8 @@ import { SwipeCard } from "./SwipeCard";
 import { FlagReveal } from "./FlagReveal";
 import { SwipeControls } from "./SwipeControls";
 import { QuizResults } from "./QuizResults";
-
-interface Question {
-  id: number;
-  image: string;
-  text: string;
-  subtext: string;
-  type: "red" | "green";
-}
+import { clearCompletedRound, loadCompletedRound, saveCompletedRound } from "@/lib/analytics/session";
+import type { Question, QuizAnswer } from "@/lib/analytics/types";
 
 interface SwipeQuizProps {
   questions: Question[];
@@ -26,17 +20,29 @@ interface SwipeQuizProps {
 export function SwipeQuiz({ questions }: SwipeQuizProps) {
   const router = useRouter();
   const [cards, setCards] = useState<Question[]>([]);
-  const [results, setResults] = useState<{ id: number; flag: "red" | "green"; correctFlag: "red" | "green" }[]>([]);
+  const [results, setResults] = useState<QuizAnswer[]>([]);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [revealType, setRevealType] = useState<"red" | "green" | null>(null);
   const [showResults, setShowResults] = useState(false);
   const [loadingText, setLoadingText] = useState("Checking your instincts...");
   const [totalSelected, setTotalSelected] = useState(20);
   const [showTutorial, setShowTutorial] = useState(true);
+  const [isResumedRound, setIsResumedRound] = useState(false);
 
   useEffect(() => {
-    // Initial random selection
     if (cards.length === 0 && !showResults && results.length === 0) {
+      // A refresh on the report reopens the round that was just finished.
+      const completedRound = loadCompletedRound();
+      if (completedRound) {
+        setResults(completedRound);
+        setTotalSelected(completedRound.length);
+        setShowTutorial(false);
+        setIsResumedRound(true);
+        setShowResults(true);
+        return;
+      }
+
+      // Initial random selection
       const shuffled = [...questions].sort(() => 0.5 - Math.random());
       const selected = shuffled.slice(0, 20);
       setCards(selected);
@@ -46,13 +52,14 @@ export function SwipeQuiz({ questions }: SwipeQuizProps) {
 
   useEffect(() => {
     if (cards.length === 0 && results.length > 0 && !showResults) {
+      saveCompletedRound(results);
       const timer = setTimeout(() => {
         setShowResults(true);
       }, 1000); // 1 second total wait
       
       return () => clearTimeout(timer);
     }
-  }, [cards.length, showResults, results.length]);
+  }, [cards.length, showResults, results]);
 
   const handleSwipe = (direction: "left" | "right", cardId: number) => {
     if (isTransitioning) return;
@@ -264,7 +271,9 @@ export function SwipeQuiz({ questions }: SwipeQuizProps) {
           <QuizResults 
             key="results"
             results={results}
+            resume={isResumedRound}
             onRetake={() => {
+              clearCompletedRound();
               router.push("/onboarding");
             }}
           />

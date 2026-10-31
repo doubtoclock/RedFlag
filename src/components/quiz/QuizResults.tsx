@@ -6,16 +6,20 @@ import { ArrowLeft, ArrowRight, AtSign, Camera, Check, Copy, Heart, Link as Link
 import { Capacitor, registerPlugin } from "@capacitor/core";
 import { toBlob } from "html-to-image";
 import { createPortal } from "react-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ShareCardTemplate } from "./ShareCardTemplate";
+import { ReportFlow } from "@/components/analytics/ReportFlow";
+import { SCORE_CARD_STEP, useReportStep, type ReportStep } from "@/components/analytics/useReportStep";
+import { buildAnalyticsReport } from "@/lib/analytics/engine";
+import type { QuizAnswer } from "@/lib/analytics/types";
 
 interface QuizResultsProps {
-  results: { id: number; flag: "red" | "green"; correctFlag: "red" | "green" }[];
+  results: QuizAnswer[];
+  resume?: boolean;
   onRetake: () => void;
 }
 
 type RelationshipStatus = "SINGLE" | "TALKING" | "DATING" | "IN A RELATIONSHIP" | "IT'S COMPLICATED";
-type ScoreTier = "HIGH" | "GOOD" | "AVERAGE" | "LOW";
 
 type ScoreImagePlugin = {
   save(options: { base64: string }): Promise<{ uri: string }>;
@@ -56,7 +60,7 @@ const MESSAGES = {
   }
 };
 
-export function QuizResults({ results, onRetake }: QuizResultsProps) {
+export function QuizResults({ results, resume = false, onRetake }: QuizResultsProps) {
   const [relStatus, setRelStatus] = useState<RelationshipStatus>("SINGLE");
   const [displayScore, setDisplayScore] = useState(0);
   const [showChallengeModal, setShowChallengeModal] = useState(false);
@@ -64,6 +68,8 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
   const [shareFeedback, setShareFeedback] = useState("");
   const [isPreparingShare, setIsPreparingShare] = useState(false);
   const scoreCardRef = useRef<HTMLDivElement>(null);
+  const { step, direction, goTo, goBack } = useReportStep(resume);
+  const isReportVisible = step !== SCORE_CARD_STEP;
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -74,10 +80,8 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
     }
   }, []);
 
-  const score = results.filter((r) => r.flag === r.correctFlag).length;
-  const totalCount = results.length;
-
-  const percentage = totalCount > 0 ? Math.round((score / totalCount) * 100) : 0;
+  const report = useMemo(() => buildAnalyticsReport(results), [results]);
+  const { greenPercent: percentage, isRedFlag, tier: scoreTier } = report.overall;
 
   useEffect(() => {
     let start = 0;
@@ -97,13 +101,6 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
     return () => clearInterval(timer);
   }, [percentage]);
 
-  let scoreTier: ScoreTier = "AVERAGE";
-  if (percentage >= 90) scoreTier = "HIGH";
-  else if (percentage >= 70) scoreTier = "GOOD";
-  else if (percentage >= 40) scoreTier = "AVERAGE";
-  else scoreTier = "LOW";
-
-  const isRedFlag = percentage < 70;
   const messageData = MESSAGES[relStatus][scoreTier];
 
   // Dynamic personality title based on score
@@ -320,17 +317,37 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
         serializes it, while the negative stack keeps it out of the interface.
       */}
       {typeof document !== "undefined" && createPortal(
-        <ShareCardTemplate ref={scoreCardRef} percentage={percentage} isRedFlag={isRedFlag} className="pointer-events-none fixed left-0 top-0 -z-10" />,
+        <ShareCardTemplate ref={scoreCardRef} summary={report.share} className="pointer-events-none fixed left-0 top-0 -z-10" />,
         document.body
       )}
 
+      <AnimatePresence>
+        {isReportVisible && (
+          <ReportFlow
+            key="report"
+            report={report}
+            step={step}
+            direction={direction}
+            onContinue={() => goTo((step + 1) as ReportStep)}
+            onBack={goBack}
+            onSkip={() => goTo(4)}
+            onShare={() => {
+              setShareFeedback("");
+              setShowShareModal(true);
+            }}
+            onViewScoreCard={() => goTo(SCORE_CARD_STEP)}
+            onRetake={onRetake}
+          />
+        )}
+      </AnimatePresence>
+
       {/* Main Content Container */}
-      <div className="absolute inset-0 m-auto flex h-[100dvh] w-full max-w-[430px] flex-col overflow-x-hidden overflow-y-auto overscroll-contain bg-transparent pb-[calc(2rem+env(safe-area-inset-bottom))] font-sans pointer-events-auto">
+      <div inert={isReportVisible} className="absolute inset-0 m-auto flex h-[100dvh] w-full max-w-[430px] flex-col overflow-x-hidden overflow-y-auto overscroll-contain bg-transparent pb-[calc(2rem+env(safe-area-inset-bottom))] font-sans pointer-events-auto">
 
         {/* Top Header */}
         <div className="relative z-20 flex w-full flex-shrink-0 items-start justify-between px-5 pb-5 pt-[max(2.5rem,env(safe-area-inset-top))]">
           <div className="flex flex-col gap-6">
-            <button onClick={onRetake} className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white/10 transition-colors backdrop-blur-sm -ml-1">
+            <button onClick={goBack} aria-label="Back to my analysis" className="w-10 h-10 rounded-full border border-white/20 flex items-center justify-center text-white hover:bg-white/10 transition-colors backdrop-blur-sm -ml-1">
               <ArrowLeft className="w-5 h-5" strokeWidth={1} />
             </button>
             <div className="flex flex-col">
@@ -353,12 +370,8 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
 
           {/* Result Title */}
           <div className="text-center flex flex-col items-center z-10">
-            <p className="mb-2 text-[10px] font-medium tracking-[0.3em] uppercase text-white">
-              YOUR RESULT
-            </p>
-
             {/* Percentage & Flag text */}
-            <div className="relative flex flex-col items-center justify-center pt-2">
+            <div className="relative flex flex-col items-center justify-center pt-1">
               <div className="flex items-end">
                 <h1
                   className="font-juana text-[96px] leading-none tracking-tighter sm:text-[120px]"
@@ -477,7 +490,7 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
               setShareFeedback("");
               setShowShareModal(true);
             }}
-            className={`w-full py-4 rounded-[100px] flex items-center justify-center ${theme.primaryBtnBg} hover:opacity-90 transition-opacity font-medium text-[15px]`}
+            className={`w-full max-w-[340px] py-4 rounded-full flex items-center justify-center ${theme.primaryBtnBg} font-semibold text-lg transition-all duration-300 hover:brightness-105 hover:-translate-y-0.5 active:scale-100 active:translate-y-0 shadow-[0_8px_30px_rgba(238,219,194,0.25)]`}
           >
             <span>Share Result</span>
             <ArrowRight className="w-5 h-5 ml-2" strokeWidth={2} />
@@ -502,14 +515,14 @@ export function QuizResults({ results, onRetake }: QuizResultsProps) {
                 }
               });
             }}
-            className="w-full py-4 rounded-[100px] border border-white/20 flex items-center justify-center gap-3 text-white bg-[#1a1a1a]/40 backdrop-blur-md hover:bg-white/10 transition-colors font-medium text-[15px]"
+            className="w-full max-w-[340px] py-4 rounded-full border border-white/25 flex items-center justify-center gap-3 text-white bg-black/40 backdrop-blur-xl hover:bg-white/10 hover:border-white/50 transition-all font-medium text-[15px] shadow-[0_8px_30px_rgba(0,0,0,0.4)] hover:-translate-y-0.5 active:scale-100 active:translate-y-0"
           >
             Think they can beat you? <ArrowRight className="w-4 h-4" strokeWidth={1.5} />
           </button>
 
           <button
             onClick={onRetake}
-            className="mt-6 flex items-center justify-center gap-2 px-6 py-2.5 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/40 text-[11px] uppercase tracking-[0.2em] font-medium text-white/80 hover:text-white hover:scale-105 transition-all shadow-[0_0_15px_rgba(255,255,255,0.05)] active:scale-95"
+            className="mt-4 flex items-center justify-center gap-2 px-6 py-2.5 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/40 text-[11px] uppercase tracking-[0.2em] font-medium text-white/80 hover:text-white transition-all shadow-[0_0_15px_rgba(255,255,255,0.05)] active:scale-95"
           >
             <RefreshCw className="w-3.5 h-3.5" />
             Try Again

@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ArrowLeft, ArrowRight, User, Users, Sparkles, Heart, MessageCircle, HeartHandshake, MoreHorizontal } from "lucide-react";
+import { clearCompletedRound } from "@/lib/analytics/session";
 
 export default function Onboarding() {
   const [step, setStep] = useState(1);
@@ -24,6 +25,8 @@ export default function Onboarding() {
     setTimeout(() => {
       if (step < 5) setStep(step + 1);
       else {
+        // Leaving a report with the back button must not resurface it here.
+        clearCompletedRound();
         router.push("/test");
       }
       setIsExiting(false);

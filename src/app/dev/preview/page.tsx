@@ -160,8 +160,14 @@ export default function DevShareCardPreview() {
           {/* The actual reusable template component, rendered exactly how it will be snapshotted */}
           <ShareCardTemplate 
             ref={scoreCardRef} 
-            percentage={percentage} 
-            isRedFlag={isRedFlag} 
+            summary={{
+              greenPercent: percentage,
+              isRedFlag,
+              // The longest labels the engine can produce, to prove the card's fixed layout holds.
+              personalityTitle: "The Professional Skeptic",
+              biggestGreenFlag: "Commitment and Relationship Expectations",
+              biggestRedFlag: "Emotional Maturity and Conflict Resolution",
+            }}
           />
         </div>
       </div>

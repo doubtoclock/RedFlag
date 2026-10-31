@@ -7,6 +7,7 @@
     "build": "next build --webpack",
     "start": "next start",
     "lint": "eslint",
+    "test": "node --import ./tests/resolve-ts.mjs --test tests/*.test.mts",
     "android:sync": "npm run build && npx cap sync android",
     "android:release": "npm run android:sync && cd android && ./gradlew assembleRelease"
   },
