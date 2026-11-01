@@ -19,7 +19,7 @@ interface ReportFlowProps {
   onBack: () => void;
   onSkip?: () => void;
   onShare: () => void;
-  onViewScoreCard: () => void;
+  onViewScoreCard?: () => void;
   onRetake: () => void;
 }
 
@@ -36,8 +36,8 @@ export function ReportFlow({ report, step, direction, onContinue, onBack, onShar
       transition={{ duration: 0.35 }}
       className="absolute inset-0 z-30 flex justify-center bg-black pointer-events-auto overflow-hidden font-sans"
     >
-      {/* Background Asset Layer with Atmospheric Lighting */}
-      <div className="absolute inset-0 z-0 pointer-events-none">
+      {/* Background Asset Layer with Atmospheric Lighting (Same as The verdict is in. page) */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
         <Image
           src="/result-bg.png"
           alt="Cinematic Background"
@@ -91,7 +91,7 @@ export function ReportFlow({ report, step, direction, onContinue, onBack, onShar
               {step === 1 && <VerdictScreen overall={report.overall} commentary={report.commentary} />}
               {step === 2 && <BreakdownScreen categories={report.categories} answered={report.overall.answered} />}
               {step === 3 && <FlagsScreen strongest={report.strongest} weakest={report.weakest} />}
-              {step === 4 && <PersonalityScreen personality={report.personality} isRedFlag={isRedFlag} />}
+              {step === 4 && <PersonalityScreen personality={report.personality} overall={report.overall} isRedFlag={isRedFlag} />}
             </motion.div>
           </AnimatePresence>
           <div className="pointer-events-none absolute inset-x-0 bottom-0 h-6 bg-gradient-to-t from-black to-transparent" />
@@ -108,17 +108,10 @@ export function ReportFlow({ report, step, direction, onContinue, onBack, onShar
           </button>
 
           {step === SCREEN_COUNT && (
-            <div className="mt-3.5 flex items-center justify-center gap-2.5 w-full max-w-[340px]">
-              <button
-                onClick={onViewScoreCard}
-                className="flex-1 py-3 px-4 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/40 text-[11px] uppercase tracking-[0.2em] font-medium text-white/90 hover:text-white transition-all flex items-center justify-center gap-2 backdrop-blur-md shadow-[0_0_15px_rgba(255,255,255,0.05)] active:scale-95"
-              >
-                <Trophy className="w-3.5 h-3.5" />
-                Score Card
-              </button>
+            <div className="mt-3 flex items-center justify-center w-full max-w-[340px]">
               <button
                 onClick={onRetake}
-                className="flex-1 py-3 px-4 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/40 text-[11px] uppercase tracking-[0.2em] font-medium text-white/90 hover:text-white transition-all flex items-center justify-center gap-2 backdrop-blur-md shadow-[0_0_15px_rgba(255,255,255,0.05)] active:scale-95"
+                className="w-full py-3.5 px-4 rounded-full border border-white/20 bg-white/5 hover:bg-white/10 hover:border-white/40 text-[11px] uppercase tracking-[0.2em] font-medium text-white/90 hover:text-white transition-all flex items-center justify-center gap-2 backdrop-blur-md shadow-[0_0_15px_rgba(255,255,255,0.05)] active:scale-95"
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 Try Again

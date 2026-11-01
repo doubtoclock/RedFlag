@@ -80,9 +80,9 @@ export function FlagsScreen({ strongest, weakest }: FlagsScreenProps) {
   const topWeakest = weakest.slice(0, 1);
 
   return (
-    <div className="pt-2 animate-in fade-in duration-700">
+    <div className="flex min-h-full flex-col justify-center py-4 animate-in fade-in duration-700">
       {/* Main Page Heading */}
-      <div className="mb-6 text-left pt-2">
+      <div className="mb-6 text-left">
         <h1 className="font-juana text-[36px] sm:text-[42px] text-white font-normal leading-[1.08] tracking-tight drop-shadow-lg">
           Flag <span className="italic text-[#eedbc2]">highlights</span>
         </h1>

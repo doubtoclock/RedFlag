@@ -102,6 +102,8 @@ export interface Personality {
   emoji: string;
   /** Text and glow color for the personality's badge. */
   accent: string;
+  /** Relative asset URL for the personality's archetype artwork. */
+  image: string;
   /** Position in the collection, shown as "Type 03 of 12". */
   index: number;
   insights: string[];

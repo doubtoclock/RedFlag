@@ -1,92 +1,138 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import Image from "next/image";
-import { PERSONALITY_RULES } from "@/lib/analytics/personalities";
-import type { Personality } from "@/lib/analytics/types";
+import type { Personality, OverallResult } from "@/lib/analytics/types";
+import {
+  MESSAGES,
+  type RelationshipStatus,
+  getRelationshipMessage,
+} from "@/lib/analytics/relationshipMessages";
+import { getArchetypeImage } from "@/lib/analytics/personalities";
 
 interface PersonalityScreenProps {
   personality: Personality;
   isRedFlag: boolean;
+  overall?: OverallResult;
 }
 
-export function PersonalityScreen({ personality, isRedFlag }: PersonalityScreenProps) {
+function removeEmojis(text: string): string {
+  return text
+    .replace(/[\p{Extended_Pictographic}\uFE0F\u200D\u20E3\uD83C-\uD83F\uDC00-\uDFFF]/gu, "")
+    .replace(/\s{2,}/g, " ")
+    .replace(/\s+([.,!?"'’”])/g, "$1")
+    .trim();
+}
+
+export function PersonalityScreen({ personality, isRedFlag, overall }: PersonalityScreenProps) {
   const reduceMotion = useReducedMotion();
-  const { title, description, emoji, accent, index, insights } = personality;
+  const { title, description, accent, insights } = personality;
+  const flagInsight = insights && insights.length > 0 ? insights[insights.length - 1] : null;
+
+  const [relStatus, setRelStatus] = useState<RelationshipStatus>("SINGLE");
+
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("redflag_relationship") as RelationshipStatus;
+      if (saved && MESSAGES[saved]) {
+        setRelStatus(saved);
+      }
+    } catch {
+      // Fallback to SINGLE
+    }
+  }, []);
+
+  const scoreTier = overall?.tier ?? (isRedFlag ? "LOW" : "HIGH");
+  const percentage = overall?.greenPercent ?? (isRedFlag ? 20 : 80);
+  const { firstWords, lastTwoWords, subPart } =
+    getRelationshipMessage(relStatus, scoreTier, percentage);
+
+  const titleColor = isRedFlag ? "text-red-200" : "text-[#c2f2b3]";
+
+  const cleanTitle = removeEmojis(title);
+  const cleanDescription = removeEmojis(description);
+  const cleanFlagInsight = flagInsight ? removeEmojis(flagInsight) : null;
+  const cleanFirstWords = removeEmojis(firstWords);
+  const cleanLastTwoWords = removeEmojis(lastTwoWords);
+  const cleanSubPart = subPart ? removeEmojis(subPart) : "";
+
+  const [imageError, setImageError] = useState(false);
+  const imageSrc = personality.image || getArchetypeImage(personality.id);
 
   return (
-    <div className="flex flex-col items-center pt-3 text-center animate-in fade-in duration-700">
+    <div className="flex min-h-full flex-col items-center justify-center py-4 text-center animate-in fade-in duration-700">
 
-      {/* 3D Flag & Celestial Orbit Graphic */}
+      {/* Archetype Image Artwork */}
       <motion.div
-        initial={reduceMotion ? false : { opacity: 0, scale: 0.88 }}
+        initial={reduceMotion ? false : { opacity: 0, scale: 0.92 }}
         animate={{ opacity: 1, scale: 1 }}
-        transition={{ type: "spring", stiffness: 260, damping: 16 }}
-        className="relative my-2 flex h-[150px] w-full max-w-[260px] items-center justify-center"
+        transition={{ type: "spring", stiffness: 260, damping: 20 }}
+        className="relative my-2 flex h-[160px] w-[160px] sm:h-[190px] sm:w-[190px] items-center justify-center overflow-hidden rounded-[22px] flex-shrink-0 shadow-[0_12px_36px_rgba(0,0,0,0.55)]"
       >
-        {/* Orbit rings */}
-        <div
-          className="absolute h-full w-full rotate-[-12deg] scale-y-[0.35] rounded-[100%] border-[0.5px]"
-          style={{ borderColor: accent, boxShadow: `0 0 24px ${accent}55` }}
-        />
-        <div className="absolute h-full w-full rotate-[-12deg] scale-y-[0.35] rounded-[100%] border-[0.5px] border-white/20" />
-
-        <div className="relative h-[150px] w-[170px] pointer-events-none">
+        {!imageError ? (
           <Image
-            src={isRedFlag ? "/red-flag.png" : "/green-flag.png"}
-            alt=""
+            src={imageSrc}
+            alt={cleanTitle}
             fill
-            sizes="170px"
-            className="object-contain drop-shadow-[0_0_25px_rgba(255,255,255,0.15)]"
+            sizes="(max-width: 640px) 160px, 190px"
+            priority
+            className="object-contain"
+            onError={() => setImageError(true)}
           />
-        </div>
-
-        {/* Floating emoji badge */}
-        <span
-          className="absolute bottom-1 right-5 flex h-[48px] w-[48px] items-center justify-center rounded-full border border-white/20 bg-black/75 backdrop-blur-xl text-[24px] shadow-2xl"
-          style={{ boxShadow: `0 0 20px ${accent}44` }}
-          aria-hidden="true"
-        >
-          {emoji}
-        </span>
+        ) : (
+          <span className="text-[64px]" role="img" aria-label={cleanTitle}>
+            {personality.emoji}
+          </span>
+        )}
       </motion.div>
 
       {/* Title in Juana */}
       <h1
-        className="mt-3 font-juana text-[32px] sm:text-[38px] font-normal leading-[1.08] tracking-tight drop-shadow-xl"
+        className="mt-3 font-juana text-[34px] sm:text-[40px] font-normal leading-[1.08] tracking-tight drop-shadow-xl"
         style={{ color: accent }}
       >
-        {title}
+        {cleanTitle}
       </h1>
-      <p className="mt-1 text-[10px] font-medium tracking-[0.25em] uppercase text-white/50">
-        Archetype {String(index).padStart(2, "0")} of {PERSONALITY_RULES.length}
-      </p>
-      <p className="mt-3 max-w-[340px] font-sans text-[14px] sm:text-[15px] font-light leading-relaxed tracking-wide text-white/85">
-        {description}
+
+      {/* Archetype Description */}
+      <p className="mt-3 max-w-[360px] font-sans text-[14px] sm:text-[15px] font-light leading-relaxed tracking-wide text-white/85">
+        {cleanDescription}
       </p>
 
-      {/* Numbered Glass Insights (Styled consistently with Onboarding steps) */}
-      <ul className="mt-6 flex flex-col gap-2.5 w-full">
-        {insights.map((insight, insightIndex) => (
-          <motion.li
-            key={insight}
-            initial={reduceMotion ? false : { opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.35, delay: reduceMotion ? 0 : 0.2 + insightIndex * 0.08 }}
-            className="flex items-start gap-3.5 p-3.5 rounded-[18px] border border-white/10 bg-white/5 backdrop-blur-md text-left transition-colors hover:border-white/20 shadow-[0_4px_20px_rgba(0,0,0,0.2)]"
-          >
-            <span
-              className="mt-0.5 text-[10px] tracking-[0.2em] font-medium flex-shrink-0"
-              style={{ color: accent }}
-            >
-              0{insightIndex + 1}
-            </span>
-            <p className="text-[13px] font-light leading-relaxed text-white/80">
-              {insight}
-            </p>
-          </motion.li>
-        ))}
-      </ul>
+      {/* Flag stats summary - seamlessly integrated without section box */}
+      {cleanFlagInsight && (
+        <motion.p
+          initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, delay: reduceMotion ? 0 : 0.15 }}
+          className="mt-4 max-w-[360px] font-sans text-[13.5px] sm:text-[14.5px] font-light leading-relaxed text-white/75"
+        >
+          {cleanFlagInsight}
+        </motion.p>
+      )}
+
+      {/* Subtle Divider */}
+      <div className="my-6 w-12 h-[1px] bg-white/20" />
+
+      {/* Headline & Subtitle */}
+      <motion.div
+        initial={reduceMotion ? false : { opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4, delay: reduceMotion ? 0 : 0.25 }}
+        className="w-full max-w-[360px] flex flex-col items-center"
+      >
+        <h2 className="px-1 text-center font-juana text-[24px] sm:text-[30px] font-medium leading-[1.2] text-white">
+          {cleanFirstWords} <br />
+          <span className={titleColor}>{cleanLastTwoWords}</span>
+        </h2>
+
+        {cleanSubPart && (
+          <p className="mt-3 font-sans text-[15px] sm:text-[16px] text-white/85 text-center font-light leading-relaxed max-w-[340px]">
+            {cleanSubPart}
+          </p>
+        )}
+      </motion.div>
     </div>
   );
 }

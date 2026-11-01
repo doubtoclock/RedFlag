@@ -3,17 +3,50 @@
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
+import styles from "./SplashScreen.module.css";
+
+const FLAG_IMAGES = [
+  "/splash/cloth-red.webp",
+  "/splash/cloth-green.webp",
+  "/splash/pole.webp",
+];
+const REEL_VALUES = ["00", "14", "73", "36", "91", "58", "22", "85", "47", "?"];
+
+// Never let a slow network hold the splash back for longer than this
+const ASSET_TIMEOUT_MS = 2500;
+// The animation lands at 3s; hold the final frame briefly before leaving
+const SPLASH_DURATION_MS = 3500;
 
 export function SplashScreen() {
   const [show, setShow] = useState(true);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    // Show splash screen for exactly 3 seconds
-    const timer = setTimeout(() => {
-      setShow(false);
-    }, 3000);
-    return () => clearTimeout(timer);
+    const decodeFlag = (src: string) => {
+      const image = new window.Image();
+      image.src = src;
+      return image.decode().catch(() => undefined);
+    };
+    const timeout = new Promise((resolve) => setTimeout(resolve, ASSET_TIMEOUT_MS));
+
+    let cancelled = false;
+    Promise.race([
+      Promise.all([...FLAG_IMAGES.map(decodeFlag), document.fonts.ready]),
+      timeout,
+    ]).then(() => {
+      if (!cancelled) setReady(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
   }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    const timer = setTimeout(() => setShow(false), SPLASH_DURATION_MS);
+    return () => clearTimeout(timer);
+  }, [ready]);
 
   return (
     <AnimatePresence>
@@ -23,76 +56,51 @@ export function SplashScreen() {
           initial={{ opacity: 1 }}
           exit={{ opacity: 0, filter: "blur(20px)", scale: 1.1 }}
           transition={{ duration: 0.8, ease: "easeInOut" }}
-          className="fixed inset-0 z-[99999] flex flex-col items-center justify-center bg-[#050505] overflow-hidden"
+          className={`${styles.splash} ${ready ? "" : styles.waiting}`}
         >
-          {/* Subtle animated background glow */}
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(220,38,38,0.15)_0%,rgba(10,10,10,1)_70%)] opacity-80" />
-          
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 1, ease: [0.34, 1.56, 0.64, 1] }}
-            className="relative flex flex-col items-center justify-center z-10"
-          >
-            {/* Waving Flag Animation Container */}
-            <div className="relative w-32 h-32 sm:w-40 sm:h-40 mb-6 drop-shadow-[0_0_40px_rgba(239,68,68,0.3)]">
-              <motion.div
-                animate={{ 
-                  rotateZ: [-2, 3, -2],
-                  y: [-3, 3, -3]
-                }}
-                transition={{ 
-                  duration: 3, 
-                  repeat: Infinity, 
-                  ease: "easeInOut" 
-                }}
-                className="absolute inset-0 flex items-center justify-center"
-              >
-                <div className="relative w-full h-full">
-                  <Image 
-                    src="/red-flag.png" 
-                    alt="Red Flag" 
-                    fill 
-                    className="object-contain drop-shadow-[0_0_20px_rgba(239,68,68,0.4)]" 
-                    priority
-                  />
-                  {/* Glass shimmer sweep effect over the flag */}
-                  <motion.div 
-                    animate={{ x: ["-200%", "300%"] }}
-                    transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", repeatDelay: 1 }}
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent w-[50%] skew-x-[-20deg]"
-                  />
+          <div className={styles.phone}>
+          <div className={styles.stage}>
+            <div className={`${styles.side} ${styles.redSide}`} aria-hidden="true">
+              <div className={styles.frame}>
+                <div className={`${styles.flag} ${styles.cloth}`}>
+                  <Image src="/splash/cloth-red.webp" alt="" width={1024} height={1024} className={styles.flagImage} preload />
                 </div>
-              </motion.div>
+              </div>
             </div>
 
-            <motion.h1
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.4, duration: 0.8 }}
-              className="font-juana text-[42px] sm:text-5xl tracking-widest text-white drop-shadow-xl"
-            >
-              RED FLAG
-            </motion.h1>
-            
-            <motion.p
-              initial={{ y: 20, opacity: 0 }}
-              animate={{ y: 0, opacity: 1 }}
-              transition={{ delay: 0.6, duration: 0.8 }}
-              className="font-sans text-[10px] tracking-[0.4em] uppercase text-white/50 mt-4"
-            >
-              Kinder Relationships
-            </motion.p>
-          </motion.div>
-          
-          {/* Bottom Loading Bar */}
-          <div className="absolute bottom-16 left-1/2 -translate-x-1/2 w-48 h-[1px] bg-white/10 overflow-hidden">
-            <motion.div 
-              initial={{ width: "0%" }}
-              animate={{ width: "100%" }}
-              transition={{ duration: 2.8, ease: "linear" }}
-              className="h-full bg-gradient-to-r from-transparent via-red-500/80 to-transparent shadow-[0_0_10px_rgba(239,68,68,0.8)]"
-            />
+            <div className={`${styles.side} ${styles.greenSide}`} aria-hidden="true">
+              <div className={styles.frame}>
+                <div className={`${styles.flag} ${styles.cloth}`}>
+                  <Image src="/splash/cloth-green.webp" alt="" width={1024} height={1024} className={styles.flagImage} preload />
+                </div>
+              </div>
+            </div>
+
+            <div className={styles.frame}>
+              <div className={styles.baseShadow} aria-hidden="true" />
+              <div className={styles.flag} aria-hidden="true">
+                <Image src="/splash/pole.webp" alt="" width={1024} height={1024} className={styles.flagImage} preload />
+              </div>
+
+              <h1 className={`font-juana ${styles.wordmark}`}>
+                <span className={styles.right}>RED</span>{" "}
+                <span className={styles.left}>FLAG</span>
+              </h1>
+
+              <p className={`font-sans ${styles.tagline}`}>Kinder Relationships</p>
+
+              <div className={`font-juana ${styles.score}`} aria-hidden="true">
+                <div className={`${styles.reelWindow} ${styles.right}`}>
+                  <div className={styles.reel}>
+                    {REEL_VALUES.map((value) => (
+                      <div key={value}>{value}</div>
+                    ))}
+                  </div>
+                </div>
+                <div className={`${styles.percent} ${styles.left}`}>%</div>
+              </div>
+            </div>
+          </div>
           </div>
         </motion.div>
       )}

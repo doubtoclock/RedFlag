@@ -1,183 +1,171 @@
 import React, { forwardRef } from "react";
-import type { ShareSummary } from "@/lib/analytics/types";
+import type { Personality, OverallResult, ShareSummary } from "@/lib/analytics/types";
+import { getArchetypeImage } from "@/lib/analytics/personalities";
 
 interface ShareCardTemplateProps {
   summary: ShareSummary;
+  personality?: Personality;
+  overall?: OverallResult;
   className?: string;
 }
 
-function FlagHighlight({ label, value, color }: { label: string; value: string; color: string }) {
-  return (
-    <div style={{ flex: 1, minWidth: 0, borderTop: `6px solid ${color}`, paddingTop: "20px" }}>
-      <p style={{ fontSize: "26px", letterSpacing: "4px", margin: "0 0 14px", fontWeight: 700, color, fontFamily: "var(--font-outfit), sans-serif" }}>{label}</p>
-      <p style={{ fontSize: "40px", lineHeight: 1.12, margin: "0", fontWeight: 700, color: "white", fontFamily: "var(--font-outfit), sans-serif" }}>{value}</p>
-    </div>
-  );
-}
-
 export const ShareCardTemplate = forwardRef<HTMLDivElement, ShareCardTemplateProps>(
-  ({ summary, className = "" }, ref) => {
-    const { greenPercent, isRedFlag, personalityTitle, biggestGreenFlag, biggestRedFlag } = summary;
+  ({ summary, personality, overall, className = "" }, ref) => {
+    const isRedFlag = overall?.isRedFlag ?? summary.isRedFlag;
+    const greenPercent = overall?.greenPercent ?? summary.greenPercent;
     const score = `${greenPercent}%`;
-    // Scores from 0–99 use three characters while 100% needs an extra digit.
-    // Sizing from the rendered value protects the fixed 9:16 card margins.
-    const scoreFontSize = score.length >= 4 ? "250px" : "290px";
-    const personalityFontSize = personalityTitle.length > 22 ? "68px" : "82px";
+
+    const title = personality?.title ?? summary.personalityTitle;
+    const description = personality?.description ?? "You see the best in people and trust your instincts.";
+    const flagStats = personality?.insights && personality.insights.length > 0
+      ? personality.insights[personality.insights.length - 1]
+      : null;
+    const accent = personality?.accent ?? (isRedFlag ? "#fca5a5" : "#c2f2b3");
+    const archetypeImageSrc = personality?.image || (personality?.id ? getArchetypeImage(personality.id) : null) || (isRedFlag ? "/red-flag.png" : "/green-flag.png");
 
     return (
       <div
         ref={ref}
-        className={`flex flex-col items-center justify-center text-white ${className}`}
+        className={`flex flex-col items-center justify-between text-white ${className}`}
         style={{
           width: "1080px",
           height: "1920px",
           background: "#090909",
-          padding: "0",
-          fontFamily: "sans-serif",
-          position: "relative"
+          padding: "120px 80px 100px",
+          fontFamily: "var(--font-outfit), sans-serif",
+          position: "relative",
+          boxSizing: "border-box",
         }}
       >
-        {/* Background Asset Layer */}
+        {/* Background Asset Layer (Same as The verdict is in. page) */}
         <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", zIndex: 0, overflow: "hidden" }}>
           <img 
             src="/result-bg.png" 
-            alt="Cinematic Background" 
-            style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.85 }} 
+            alt="" 
+            style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.7 }} 
             crossOrigin="anonymous"
           />
-          <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.3)" }} />
-          <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: "linear-gradient(to bottom, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0.1) 40%, rgba(0,0,0,0.1) 60%, rgba(0,0,0,0.95) 100%)" }} />
+          <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", backgroundColor: "rgba(0,0,0,0.65)" }} />
+          <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", background: "linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0.45) 45%, rgba(0,0,0,0.95) 100%)" }} />
+          <div style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            width: "100%",
+            height: "100%",
+            background: isRedFlag
+              ? "radial-gradient(circle at 50% 35%, rgba(239, 68, 68, 0.15) 0%, transparent 60%)"
+              : "radial-gradient(circle at 50% 35%, rgba(34, 197, 94, 0.15) 0%, transparent 60%)"
+          }} />
         </div>
 
-        {/* Subtle background glow based on result */}
-        <div style={{
-          position: "absolute",
-          top: "40%",
-          left: "50%",
-          transform: "translate(-50%, -50%)",
-          width: "1200px",
-          height: "1200px",
-          background: isRedFlag ? "radial-gradient(circle, rgba(239,68,68,0.2) 0%, rgba(0,0,0,0) 65%)" : "radial-gradient(circle, rgba(34,197,94,0.2) 0%, rgba(0,0,0,0) 65%)",
-          zIndex: 0,
-          pointerEvents: "none"
-        }} />
-
-        {/* Top accents */}
-        <div style={{ position: "absolute", top: "72px", left: "64px", zIndex: 1, transform: "rotate(-6deg)", opacity: 0.78 }}>
-          <p style={{ fontSize: "32px", margin: "0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.9)" }}>SAME PEOPLE.</p>
-          <p style={{ fontSize: "38px", margin: "-4px 0 0 0", fontFamily: "var(--font-sanggar)", color: isRedFlag ? "#f87171" : "#4ade80" }}>DIFFERENT</p>
-          <p style={{ fontSize: "32px", margin: "-4px 0 0 0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.9)" }}>PERSPECTIVES.</p>
-        </div>
-        
-        <div style={{ position: "absolute", top: "64px", right: "64px", zIndex: 1, textAlign: "center", transform: "rotate(4deg)", opacity: 0.72 }}>
-          <p style={{ fontSize: "28px", margin: "0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.85)" }}>BETTER</p>
-          <p style={{ fontSize: "28px", margin: "-4px 0 0 0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.85)" }}>PEOPLE</p>
-          <p style={{ fontSize: "28px", margin: "-4px 0 0 0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.85)" }}>BRIGHTER</p>
-          <p style={{ fontSize: "28px", margin: "-4px 0 0 0", fontFamily: "var(--font-sanggar)", color: "rgba(255,255,255,0.85)" }}>DAYS</p>
+        {/* Top Header: Score Pill */}
+        <div style={{ position: "relative", zIndex: 2, display: "flex", justifyContent: "center", width: "100%" }}>
+          <div style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: "20px",
+            padding: "18px 46px",
+            borderRadius: "9999px",
+            border: `2.5px solid ${isRedFlag ? "rgba(239,68,68,0.5)" : "rgba(74,222,128,0.5)"}`,
+            backgroundColor: isRedFlag ? "rgba(239,68,68,0.18)" : "rgba(74,222,128,0.18)",
+            backdropFilter: "blur(20px)",
+            color: isRedFlag ? "#fca5a5" : "#86efac",
+            fontSize: "36px",
+            fontWeight: 700,
+            letterSpacing: "6px",
+            textTransform: "uppercase",
+            boxShadow: isRedFlag ? "0 0 50px rgba(239,68,68,0.35)" : "0 0 50px rgba(74,222,128,0.35)"
+          }}>
+            <span>{score}</span>
+            <span style={{ opacity: 0.5 }}>•</span>
+            <span>{isRedFlag ? "RED FLAG" : "GREEN FLAG"}</span>
+          </div>
         </div>
 
-        {/* The fixed grid keeps every foreground element in its own 9:16 region. */}
+        {/* Center Main Card: Flag Graphic & Archetype Info */}
         <div style={{
           position: "relative",
           zIndex: 2,
-          display: "grid",
-          gridTemplateRows: "70px 300px 210px 190px 220px 260px 170px",
-          rowGap: "22px",
-          alignContent: "end",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
           width: "100%",
-          height: "100%",
-          padding: "170px 80px 64px",
-          boxSizing: "border-box"
+          maxWidth: "920px",
+          textAlign: "center",
+          margin: "auto 0"
         }}>
-          <div style={{ display: "flex", alignItems: "flex-end", justifyContent: "center" }}>
-            <p style={{ fontSize: "42px", letterSpacing: "16px", margin: "0", opacity: 0.95, fontWeight: 600, fontFamily: "var(--font-outfit), sans-serif" }}>I SCORED</p>
-          </div>
-          
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", minWidth: 0 }}>
-            <p style={{
-              maxWidth: "920px",
-              fontSize: scoreFontSize,
-              lineHeight: 0.86,
-              fontWeight: 800,
-              margin: "0",
-              fontFamily: "var(--font-sanggar), serif",
-              color: isRedFlag ? "#fecaca" : "#dcfce7",
-              textShadow: isRedFlag ? "0 0 78px rgba(239,68,68,0.72)" : "0 0 78px rgba(34,197,94,0.72)",
-              whiteSpace: "nowrap"
-            }}>
-              {score}
-            </p>
-          </div>
-
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center" }}>
-            <p style={{ fontSize: "60px", lineHeight: 1, margin: "0 0 12px", fontFamily: "var(--font-sanggar)", opacity: 0.95, transform: "rotate(-3deg)" }}>I&apos;M A</p>
-            <p style={{
-              fontSize: "124px",
-              lineHeight: 0.9,
-              fontWeight: 900,
-              margin: "0",
-              fontFamily: "var(--font-sanggar), serif",
-              color: isRedFlag ? "#fca5a5" : "#c2f2b3",
-              textShadow: isRedFlag ? "0 0 64px rgba(239,68,68,0.58)" : "0 0 64px rgba(34,197,94,0.58)",
-              textAlign: "center",
-              letterSpacing: "-2px"
-            }}>
-              {isRedFlag ? "RED FLAG" : "GREEN FLAG"}
-            </p>
-          </div>
-
-          {/* Flag Graphic */}
-          <div style={{ position: "relative", width: "100%", height: "100%", display: "flex", justifyContent: "center", alignItems: "center" }}>
+          {/* Archetype Artwork */}
+          <div style={{
+            position: "relative",
+            width: "440px",
+            height: "440px",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            marginBottom: "28px",
+            borderRadius: "44px",
+            overflow: "hidden",
+            boxShadow: "0 24px 60px rgba(0,0,0,0.6)"
+          }}>
             <img 
-              src={isRedFlag ? "/red-flag.png" : "/green-flag.png"} 
-              alt="Flag" 
+              src={archetypeImageSrc} 
+              alt={title} 
               style={{ 
-                width: "420px",
-                height: "190px",
+                width: "100%",
+                height: "100%",
                 objectFit: "contain",
-                filter: isRedFlag ? "drop-shadow(0 0 60px rgba(239,68,68,0.7))" : "drop-shadow(0 0 60px rgba(34,197,94,0.7))"
               }} 
               crossOrigin="anonymous"
             />
           </div>
 
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minWidth: 0 }}>
-            <p style={{ fontSize: "28px", letterSpacing: "8px", margin: "0 0 18px", fontWeight: 600, opacity: 0.8, fontFamily: "var(--font-outfit), sans-serif" }}>MY RELATIONSHIP PERSONALITY</p>
-            <p style={{
-              fontSize: personalityFontSize,
-              lineHeight: 1,
-              margin: "0",
-              textAlign: "center",
-              fontWeight: 800,
-              color: "white",
-              letterSpacing: "-1px",
-              textTransform: "uppercase",
-              fontFamily: "var(--font-outfit), sans-serif",
-              textShadow: "2px 4px 10px rgba(0,0,0,0.5)"
-            }}>
-              {personalityTitle}
-            </p>
-          </div>
+          {/* Archetype Title in Sanggar Serif */}
+          <h1 style={{
+            fontSize: "92px",
+            lineHeight: 1.08,
+            margin: "16px 0 0",
+            fontFamily: "var(--font-sanggar), serif",
+            color: accent,
+            letterSpacing: "-1px",
+            textShadow: `0 0 40px ${accent}55`
+          }}>
+            {title}
+          </h1>
 
-          <div style={{ display: "flex", gap: "40px", alignItems: "flex-start", minWidth: 0 }}>
-            <FlagHighlight label="BIGGEST GREEN FLAG" value={biggestGreenFlag ?? "Still warming up"} color="#4ade80" />
-            <FlagHighlight label="BIGGEST RED FLAG" value={biggestRedFlag ?? "None spotted"} color="#f87171" />
-          </div>
+          {/* Archetype Description */}
+          <p style={{
+            fontSize: "38px",
+            lineHeight: 1.5,
+            margin: "24px 0 0",
+            color: "rgba(255,255,255,0.88)",
+            maxWidth: "840px",
+            fontWeight: 300
+          }}>
+            {description}
+          </p>
+        </div>
 
-          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "flex-end" }}>
-            <p style={{
-              fontSize: "52px",
-              lineHeight: 0.9,
-              margin: "0",
-              textAlign: "center",
-              fontFamily: "var(--font-sanggar)",
-              color: isRedFlag ? "#f87171" : "#4ade80",
-              textShadow: isRedFlag ? "0 0 30px rgba(239,68,68,0.5)" : "0 0 30px rgba(34,197,94,0.5)"
-            }}>
-              THINK YOU CAN BEAT MY SCORE? 👀
-            </p>
-            <p style={{ fontSize: "30px", letterSpacing: "12px", margin: "26px 0 0", fontWeight: 700, opacity: 0.9, fontFamily: "var(--font-outfit), sans-serif" }}>🚩 RED FLAG GAME</p>
-          </div>
+        {/* Bottom Footer */}
+        <div style={{
+          position: "relative",
+          zIndex: 2,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "12px",
+          width: "100%"
+        }}>
+          <p style={{
+            fontSize: "36px",
+            fontFamily: "var(--font-sanggar), serif",
+            color: isRedFlag ? "#fca5a5" : "#86efac",
+            margin: 0,
+            letterSpacing: "3px"
+          }}>
+            THINK YOU CAN BEAT MY SCORE?
+          </p>
         </div>
       </div>
     );

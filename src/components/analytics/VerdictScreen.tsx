@@ -50,7 +50,7 @@ export function VerdictScreen({ overall, commentary }: VerdictScreenProps) {
       >
         <Flag className="w-4 h-4 fill-current" />
         <span className="text-[12px] sm:text-[13px] font-semibold tracking-[0.2em] uppercase font-sans">
-          {isRedFlag ? "Red Flag! 🚩" : "Green Flag! 💚"}
+          {isRedFlag ? "Red Flag!" : "Green Flag!"}
         </span>
       </motion.div>
 

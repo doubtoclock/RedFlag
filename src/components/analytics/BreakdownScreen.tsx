@@ -1,7 +1,6 @@
 "use client";
 
 import { motion, useReducedMotion } from "framer-motion";
-import { QUESTION_BANK } from "@/lib/analytics/questionBank";
 import type { CategoryAnalytics, ScoreBand } from "@/lib/analytics/types";
 
 const BAND_STYLES: Record<ScoreBand, { bar: string; text: string; label: string }> = {
@@ -16,10 +15,10 @@ function answerCount(answered: number) {
 
 interface BreakdownScreenProps {
   categories: CategoryAnalytics[];
-  answered: number;
+  answered?: number;
 }
 
-export function BreakdownScreen({ categories, answered }: BreakdownScreenProps) {
+export function BreakdownScreen({ categories }: BreakdownScreenProps) {
   const reduceMotion = useReducedMotion();
   const ranked = [...categories].sort((a, b) => (b.percent ?? -1) - (a.percent ?? -1));
 
@@ -88,11 +87,6 @@ export function BreakdownScreen({ categories, answered }: BreakdownScreenProps) 
           );
         })}
       </ul>
-
-      {/* Footnote */}
-      <p className="mt-6 border-t border-white/10 pt-4 text-[11px] font-light leading-relaxed text-white/45 text-center">
-        You played {answered} of {QUESTION_BANK.length} cards, and only those count here. Cards that depend on the couple never count against you.
-      </p>
     </div>
   );
 }

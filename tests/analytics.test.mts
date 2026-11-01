@@ -295,11 +295,13 @@ describe("personalities", () => {
   it("defines 8 to 12 unique types and always assigns one", () => {
     assert.ok(PERSONALITY_RULES.length >= 8 && PERSONALITY_RULES.length <= 12);
     assert.equal(new Set(PERSONALITY_RULES.map((rule) => rule.title)).size, PERSONALITY_RULES.length);
+    assert.ok(PERSONALITY_RULES.every((rule) => typeof rule.image === "string" && rule.image.startsWith("/images/")));
 
     const random = seededRandom(41);
     for (let round = 0; round < 500; round++) {
       const { personality } = buildAnalyticsReport(randomRound(random, () => (random() < random() ? "red" : "green")));
-      assert.ok(personality.title && personality.description && personality.emoji);
+      assert.ok(personality.title && personality.description && personality.emoji && personality.image);
+      assert.ok(personality.image.startsWith("/images/"));
       assert.ok(personality.insights.length >= 2 && personality.insights.length <= 3);
     }
   });
